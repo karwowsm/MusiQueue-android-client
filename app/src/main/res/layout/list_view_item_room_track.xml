@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="5dp"
+    android:paddingTop="5dp"
+    android:paddingRight="5dp"
+    android:paddingBottom="5dp">
+
+    <pl.com.karwowsm.musiqueue.ui.view.CustomNetworkImageView
+        android:id="@+id/track_img"
+        android:layout_width="@dimen/list_view_item_image_size"
+        android:layout_height="@dimen/list_view_item_image_size"
+        android:layout_centerVertical="true" />
+
+    <TextView
+        android:id="@+id/title_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="10dp"
+        android:layout_toStartOf="@id/kebab_menu_ic"
+        android:layout_toEndOf="@id/track_img"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/artist_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title_tv"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_toStartOf="@id/username_tv"
+        android:layout_toEndOf="@id/track_img"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <ImageView
+        android:id="@+id/kebab_menu_ic"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:contentDescription="@string/context_menu"
+        android:padding="8dp"
+        android:showAsAction="never"
+        android:src="@drawable/ic_kebab_menu" />
+
+    <TextView
+        android:id="@+id/username_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/track_img"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:ellipsize="end"
+        android:maxEms="4"
+        android:maxLines="1"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+</RelativeLayout>

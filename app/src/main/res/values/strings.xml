@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">MusiQueue</string>
+
+    <string name="server_error">Server is not responding. Please try again later.</string>
+    <string name="connection_error">Connection error occurred. Check your network settings and try again.</string>
+
+    <!--    LoginActivity -->
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="btn_link_to_register">Not a member? <b>Sign up</b>.</string>
+    <string name="logging_in">Logging in…</string>
+
+    <!--    RegisterActivity -->
+    <string name="email">Email</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="register">Register</string>
+    <string name="agreement">By registration you agree with our %1$s and %2$s.</string>
+    <string name="btn_link_to_login">I have an account. <b>Login</b>.</string>
+    <string name="empty_field">must not be empty</string>
+    <string name="registering">Registering…</string>
+    <string name="registration_success">User successfully registered. Try login now!</string>
+
+    <!--    RoomSelectActivity -->
+    <string name="hello">Hello %s!</string>
+    <string name="rooms">Rooms</string>
+    <string name="room_members">Room members</string>
+
+    <!--    RoomCreateActivity -->
+    <string name="room_name">Room name</string>
+    <string name="user_queued_tracks_limit">Maximum tracks queued by single user (optional)</string>
+    <string name="create_room">Create Room</string>
+    <string name="blank_room_name">Room name is required.</string>
+
+    <!--    RoomUpdateActivity -->
+    <string name="update_room">Update Room</string>
+
+    <!--    TracksActivity -->
+    <string name="tracks">Tracks</string>
+    <string name="queued_number">Number of times track was queued</string>
+
+    <!--    RoomActivity -->
+    <string name="mute">Mute</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_log_in_to_spotify">Log in to Spotify</string>
+    <string name="context_menu">Context menu</string>
+    <string name="queue_again">Queue again</string>
+    <string name="add_track">Add track</string>
+    <string name="upload_track">Upload track</string>
+    <string name="add_youtube_track">Add track from YouTube</string>
+    <string name="add_spotify_track">Add track from Spotify</string>
+    <string name="add_soundcloud_track">Add track from SoundCloud</string>
+    <string name="refusal_to_add">You can\'t add anymore tracks at the moment. Maximum queued tracks in this room is %d.</string>
+    <string name="on_played_click">This track has already been played.</string>
+    <string name="refusal_to_play">You can\'t skip other users\' tracks.</string>
+
+    <!--    NavigationView -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="user_picture">User\'s picture</string>
+    <string name="communicate">Communicate</string>
+    <string name="share">Share</string>
+    <string name="send">Send</string>
+    <string name="account">Account</string>
+    <string name="logout">Logout</string>
+
+    <!--    MessagingService -->
+    <string name="room_was_updated">Room was updated by %1$s.</string>
+    <string name="room_was_deleted">Room %1$s was deleted by %2$s.</string>
+    <string name="room_member_joined">%1$s has joined the room.</string>
+    <string name="room_member_left">%1$s has left the room.</string>
+
+    <!--    Files uploading -->
+    <string name="permission_not_granted">You didn\'t allow %1$s to access your storage.</string>
+    <string name="adding_file_content_failed">Something went wrong during adding Your file.</string>
+    <string name="file_too_large">The file You are trying to upload is too large. It exceeds the %dMB limit.</string>
+    <string name="uploading">Uploading…</string>
+    <string name="uploading_track_failed">Something went wrong during uploading track.</string>
+
+    <!--    YouTube -->
+    <string name="youTube">YouTube</string>
+    <string name="youtube_player_init_error">There was an error initializing the YouTubePlayer (%1$s)</string>
+    <string name="youtube_error_response">Something went wrong with connection to YouTube.</string>
+
+    <!--    Spotify -->
+    <string name="spotify">Spotify</string>
+    <string name="not_logged_in_spotify">You have to log in to Spotify if You want to play all the tracks.</string>
+    <string name="log_in">Log in.</string>
+    <string name="spotify_error_authenticating">Something went wrong during Spotify Authentication.</string>
+    <string name="spotify_playback_error">Couldn\'t play it. An error has occurred.</string>
+    <string name="spotify_error_response">Something went wrong with connection to Spotify.</string>
+    <string name="spotify_access_token_expired">Spotify access token expired.</string>
+    <string name="artists">Artists</string>
+    <string name="playlists">Playlists</string>
+    <string name="top_tracks">Top tracks</string>
+    <string name="unavailable_tracks_chosen">Tracks You\'ve chosen are unavailable in Your country and were\'t added.</string>
+    <plurals name="unavailable_tracks_chosen">
+        <item quantity="one">A track You\'ve chosen is unavailable in Your country and wasn\'t added.</item>
+        <item quantity="other">%d of the tracks You\'ve chosen are unavailable in Your country and were\'t added.</item>
+    </plurals>
+
+    <!--    SoundCloud -->
+    <string name="soundCloud">SoundCloud</string>
+    <string name="soundcloud_error_response">Something went wrong with connection to SoundCloud.</string>
+
+    <!--    misc -->
+    <string name="update">Update</string>
+    <string name="delete">Delete</string>
+    <string name="please_wait">Please wait…</string>
+    <string name="try_again">Try again</string>
+    <string name="not_developed_yet">Not developed yet.</string>
+
+    <!--    NotificationChannels -->
+    <string name="currently_playing_notification_channel">Currently playing track</string>
+</resources>

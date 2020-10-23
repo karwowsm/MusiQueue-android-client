@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/listViewBackground"
+    android:orientation="vertical"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".ui.activity.RoomActivity"
+    tools:showIn="@layout/activity_room">
+
+    <LinearLayout
+        android:id="@+id/current_track_view_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <pl.com.karwowsm.musiqueue.ui.view.CustomNetworkImageView
+            android:id="@+id/current_track_img"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/currently_playing_box_height" />
+
+        <LinearLayout
+            android:id="@+id/video_box_layout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/currently_playing_box_height"
+            android:visibility="gone">
+
+            <fragment
+                android:id="@+id/youtube_fragment"
+                android:name="com.google.android.youtube.player.YouTubePlayerAndroidXFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:paddingBottom="5dp" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/room_tracks_lv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:cacheColorHint="@color/listViewDivider"
+        android:divider="@color/listViewDivider"
+        android:dividerHeight="1dp"
+        android:paddingBottom="5dp"
+        tools:listitem="@layout/list_view_item_room_track" />
+
+</LinearLayout>

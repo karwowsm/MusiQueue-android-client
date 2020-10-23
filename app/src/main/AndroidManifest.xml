@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="pl.com.karwowsm.musiqueue">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <application
+        android:name=".AppController"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_descriptor"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".ui.activity.LoginActivity"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activity.RegisterActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.RoomActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait" />
+
+        <service
+            android:name=".service.RoomService"
+            android:foregroundServiceType="dataSync|mediaPlayback" />
+        <service android:name=".service.KillerService" />
+        <!-- Needed for LoginActivity to work -->
+        <activity
+            android:name="com.spotify.sdk.android.authentication.LoginActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name=".ui.activity.RoomSelectActivity" />
+        <activity android:name=".ui.activity.RoomCreateActivity" />
+        <activity android:name=".ui.activity.RoomUpdateActivity" />
+        <activity android:name=".ui.activity.TracksActivity" />
+    </application>
+
+</manifest>

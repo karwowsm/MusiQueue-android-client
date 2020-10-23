@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/colorPrimary"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <EditText
+            android:id="@+id/username_et"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="3dp"
+            android:autofillHints=".AUTOFILL_HINT_NEW_USERNAME"
+            android:hint="@string/username"
+            android:inputType="textCapWords"
+            android:padding="10dp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/username_error_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:lines="2"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/email_et"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:autofillHints=".AUTOFILL_HINT_EMAIL_ADDRESS"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/email_error_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:lines="2"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/password_et"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:autofillHints=".AUTOFILL_HINT_NEW_PASSWORD"
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            android:padding="10dp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/password_error_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:lines="2"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/password_confirmation_et"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:autofillHints=".AUTOFILL_HINT_NEW_PASSWORD"
+            android:hint="@string/confirm_password"
+            android:inputType="textPassword"
+            android:padding="10dp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/password_confirmation_error_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="9dp"
+            android:lines="1"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dip"
+            android:layout_marginBottom="6dp"
+            android:background="@color/colorAccent"
+            android:onClick="onRegister"
+            android:text="@string/register" />
+
+        <TextView
+            android:id="@+id/agreement_tv"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="21dip"
+            android:background="@null"
+            android:onClick="onLogin"
+            android:text="@string/btn_link_to_login"
+            android:textAllCaps="false"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

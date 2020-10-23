@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/log_in_to_spotify_menu_item"
+        android:orderInCategory="100"
+        android:title="@string/action_log_in_to_spotify"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/settings_menu_item"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+</menu>

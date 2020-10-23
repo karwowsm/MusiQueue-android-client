@@ -1,0 +1,54 @@
+package pl.com.karwowsm.musiqueue.ui.activity;
+
+import android.os.Bundle;
+import android.widget.ListView;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import pl.com.karwowsm.musiqueue.R;
+import pl.com.karwowsm.musiqueue.api.controller.TrackController;
+import pl.com.karwowsm.musiqueue.api.dto.Track;
+import pl.com.karwowsm.musiqueue.api.dto.UserAccount;
+import pl.com.karwowsm.musiqueue.ui.adapter.TrackListViewAdapter;
+
+public class TracksActivity extends NavigationViewActivity {
+
+    private List<Track> tracks;
+    private TrackListViewAdapter trackListViewAdapter;
+    private SwipeRefreshLayout swipeRefresh;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tracks);
+        Bundle bundle = getIntent().getExtras();
+        me = (UserAccount) bundle.get("me");
+        ListView listView = findViewById(R.id.tracks_lv);
+        tracks = new ArrayList<>();
+        trackListViewAdapter = new TrackListViewAdapter(this, R.layout.list_view_item_room, tracks);
+        listView.setAdapter(trackListViewAdapter);
+        swipeRefresh = findViewById(R.id.swipe_refresh_layout);
+        setTitle(R.string.tracks);
+
+        initNavigationView();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        getTracks();
+        swipeRefresh.setOnRefreshListener(this::getTracks);
+    }
+
+    private void getTracks() {
+        TrackController.findTrack(trackPage -> {
+            tracks.clear();
+            tracks.addAll(trackPage.getContent());
+            trackListViewAdapter.notifyDataSetChanged();
+            swipeRefresh.setRefreshing(false);
+        }, error -> swipeRefresh.setRefreshing(false));
+    }
+}
