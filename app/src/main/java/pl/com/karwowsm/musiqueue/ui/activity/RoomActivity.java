@@ -97,10 +97,11 @@ public class RoomActivity extends NavigationViewActivity {
         );
         tracklistManager.setSpotifyPlayerInitializer(this::initSpotifyPlayer);
 
-        MessagingService.connect(() -> tracklistManager.initialize(listView), () -> {
-            showToast(R.string.connection_error);
-            leaveRoom();
-        });
+        MessagingService.connect(() -> tracklistManager.initialize(findViewById(R.id.swipe_refresh_layout), listView),
+            () -> {
+                showToast(R.string.connection_error);
+                leaveRoom();
+            });
         messagingService = new MessagingService();
         messagingService.initRoomSubscription(room.getId(), message -> {
             room = message.getRoom();

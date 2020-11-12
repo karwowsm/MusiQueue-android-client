@@ -16,6 +16,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -33,9 +35,13 @@ public class RoomTracklistController extends BaseController {
 
     private static final String BASE_PATH = "/rooms/%s/tracklist";
 
-    public static void getTracklist(final UUID id, Response.Listener<RoomTracklist> listener) {
-        addToRequestQueue(Request.Method.GET, String.format(BASE_PATH, id),
-            RoomTracklist.class, listener);
+    public static void getTracklist(final UUID id, final int offset,
+                                    Response.Listener<RoomTracklist> listener,
+                                    ErrorResponse.Listener errorResponseListener) {
+        Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("offset", String.valueOf(offset));
+        addToRequestQueue(Request.Method.GET, String.format(BASE_PATH, id), queryParams, null,
+            RoomTracklist.class, listener, errorResponseListener);
     }
 
     public static void uploadTrack(final UUID id, final Uri fileUri,

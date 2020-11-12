@@ -8,6 +8,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.exoplayer2.SimpleExoPlayer;
 
@@ -46,6 +47,8 @@ import pl.com.karwowsm.musiqueue.util.FileUtils;
 
 public class TracklistManager {
 
+    private static final int OFFSET_SIZE = 5;
+
     private final Context context;
     private final UserAccount me;
     private final UUID roomId;
@@ -60,7 +63,6 @@ public class TracklistManager {
     private Runnable onSpotifyLoggingInRequisition;
     @Setter
     private Runnable spotifyPlayerInitializer;
-
     private Toast toast;
 
     public TracklistManager(Context context, UserAccount me, UUID roomId,
@@ -72,8 +74,8 @@ public class TracklistManager {
         messagingService = new MessagingService();
     }
 
-    public void initialize(ListView listView) {
-        RoomTracklistController.getTracklist(roomId, roomTracklist -> {
+    public void initialize(SwipeRefreshLayout swipeRefresh, ListView listView) {
+        RoomTracklistController.getTracklist(roomId, 0, roomTracklist -> {
             roomTrackListViewAdapter = new RoomTrackListViewAdapter(
                 context,
                 R.layout.list_view_item_room_track,
@@ -82,7 +84,6 @@ public class TracklistManager {
             tracklist = new Tracklist(roomTracklist);
             if (getCurrentTrack() != null) {
                 play(roomTracklist.getStartedPlayingAt());
-                listView.setSelection(getCurrentTrack().getIndex());
             }
             requestLoggingInToSpotifyIfNeeded(tracklist.getQueuedTracks());
             listView.setOnItemClickListener((adapterView, view, pos, l) -> {
@@ -102,6 +103,10 @@ public class TracklistManager {
                     showToast(R.string.refusal_to_play);
                 }
             });
+            swipeRefresh.setOnRefreshListener(() -> {
+                int offset = tracklist.getCurrentTrackIndex() + OFFSET_SIZE;
+                getTracklist(offset, () -> swipeRefresh.setRefreshing(false));
+            });
             messagingService.initRoomTracksSubscription(roomId, message -> {
                 switch (message.getType()) {
                     case ADDED:
@@ -118,7 +123,7 @@ public class TracklistManager {
                 }
                 roomTrackListViewAdapter.notifyDataSetChanged();
             });
-        });
+        }, null);
     }
 
     public void addFileContent(Uri uri) throws IOException {
@@ -237,6 +242,14 @@ public class TracklistManager {
         Player.releaseYouTubePlayer();
         Player.setSpotifyPlayer(null);
         currentTrackView.finish();
+    }
+
+    private void getTracklist(int offset, Runnable refreshingCanceler) {
+        RoomTracklistController.getTracklist(roomId, -offset, roomTracklist -> {
+            tracklist.reset(roomTracklist);
+            roomTrackListViewAdapter.notifyDataSetChanged();
+            refreshingCanceler.run();
+        }, error -> refreshingCanceler.run());
     }
 
     private void addSpotifyPlaylistTracks(List<SpotifyPlaylistTrack> playlistTracks) {

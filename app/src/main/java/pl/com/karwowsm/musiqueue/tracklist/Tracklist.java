@@ -1,9 +1,7 @@
 package pl.com.karwowsm.musiqueue.tracklist;
 
-import android.util.Pair;
-
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.UUID;
 
 import lombok.Getter;
 import pl.com.karwowsm.musiqueue.api.dto.RoomTrack;
@@ -16,24 +14,19 @@ class Tracklist {
     private RoomTrack currentTrack;
 
     Tracklist(RoomTracklist roomTracklist) {
-        this.tracks = roomTracklist.getTracklist();
+        tracks = roomTracklist.getTracklist();
         if (roomTracklist.getCurrentTrackId() != null) {
-            RoomTrack currentTrack = tracks.stream()
-                .filter(it -> it.getId().equals(roomTracklist.getCurrentTrackId()))
-                .findFirst().get();
-            currentTrack.setIsPlayed(false);
-            setCurrentTrack(currentTrack);
+            updateCurrentTrack(roomTracklist.getCurrentTrackId());
         }
     }
 
     void add(RoomTrack track) {
         track.setIsPlayed(false);
-        IntStream.range(0, tracks.size())
-            .mapToObj(index -> Pair.create(tracks.get(index), index))
-            .filter(pair -> pair.second >= pair.first.getIndex() && pair.second >= track.getIndex())
-            .map(pair -> pair.first)
+        tracks.stream()
+            .filter(it -> it.getIndex() >= track.getIndex())
             .forEach(RoomTrack::incrementIndex);
-        tracks.add(track.getIndex(), track);
+        int offset = currentTrack != null ? tracks.indexOf(currentTrack) - currentTrack.getIndex() : 0;
+        tracks.add(track.getIndex() + offset, track);
     }
 
     void delete(RoomTrack roomTrack) {
@@ -44,14 +37,11 @@ class Tracklist {
     }
 
     void updateCurrentTrack(RoomTrack roomTrack) {
-        RoomTrack currentTrack = tracks.stream()
-            .filter(it -> it.getId().equals(roomTrack.getId()))
-            .findFirst().get();
-        setCurrentTrack(currentTrack);
+        updateCurrentTrack(roomTrack.getId());
     }
 
     RoomTrack getTrackOnPosition(int position) {
-        return position > tracks.size() ? null : tracks.get(position);
+        return position <= tracks.size() ? tracks.get(position) : null;
     }
 
     List<RoomTrack> getQueuedTracks() {
@@ -59,11 +49,27 @@ class Tracklist {
     }
 
     int getPlayedCount() {
-        return (int) tracks.stream().filter(RoomTrack::getIsPlayed).count();
+        return (currentTrack != null && currentTrack.getIsPlayed() ? 1 : 0) + getCurrentTrackIndex();
     }
 
-    private void setCurrentTrack(RoomTrack roomTrack) {
-        currentTrack = roomTrack;
+    int getCurrentTrackIndex() {
+        return currentTrack != null ? tracks.indexOf(currentTrack) : 0;
+    }
+
+    void reset(RoomTracklist roomTracklist) {
+        tracks.clear();
+        tracks.addAll(roomTracklist.getTracklist());
+        if (roomTracklist.getCurrentTrackId() != null) {
+            boolean wasPlayed = currentTrack != null ? currentTrack.getIsPlayed() : false;
+            updateCurrentTrack(roomTracklist.getCurrentTrackId());
+            currentTrack.setIsPlayed(wasPlayed);
+        }
+    }
+
+    private void updateCurrentTrack(UUID roomTrackId) {
+        currentTrack = tracks.stream()
+            .filter(it -> it.getId().equals(roomTrackId))
+            .findFirst().get();
         for (RoomTrack track : tracks) {
             track.setIsPlayed(track.getIndex() < currentTrack.getIndex());
         }

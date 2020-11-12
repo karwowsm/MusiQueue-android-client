@@ -41,12 +41,6 @@ public abstract class BaseController extends TokenHolder {
 
     static <ResT> void addToRequestQueue(int method, String path,
                                          Class<ResT> responseClass,
-                                         Response.Listener<ResT> listener) {
-        addToRequestQueue(method, path, responseClass, listener, null);
-    }
-
-    static <ResT> void addToRequestQueue(int method, String path,
-                                         Class<ResT> responseClass,
                                          Response.Listener<ResT> listener,
                                          ErrorResponse.Listener errorResponseListener) {
         addToRequestQueue(method, path, null, responseClass, listener, errorResponseListener);
@@ -56,14 +50,14 @@ public abstract class BaseController extends TokenHolder {
                                                Class<ResT> responseClass,
                                                Response.Listener<ResT> listener,
                                                ErrorResponse.Listener errorResponseListener) {
-        addToRequestQueue(method, path, jsonRequest, TypeToken.get(responseClass), listener, errorResponseListener);
+        addToRequestQueue(method, path, new HashMap<>(), jsonRequest, responseClass, listener, errorResponseListener);
     }
 
-    static <ReqT, ResT> void addToRequestQueue(int method, String path, ReqT jsonRequest,
-                                               TypeToken<ResT> responseTypeToken,
+    static <ReqT, ResT> void addToRequestQueue(int method, String path, Map<String, String> queryParams,
+                                               ReqT jsonRequest, Class<ResT> responseClass,
                                                Response.Listener<ResT> listener,
                                                ErrorResponse.Listener errorResponseListener) {
-        addToRequestQueue(method, path, new HashMap<>(), jsonRequest, responseTypeToken, listener, errorResponseListener);
+        addToRequestQueue(method, path, queryParams, jsonRequest, TypeToken.get(responseClass), listener, errorResponseListener);
     }
 
     static <ReqT, ResT> void addToRequestQueue(int method, String path, Map<String, String> queryParams,
