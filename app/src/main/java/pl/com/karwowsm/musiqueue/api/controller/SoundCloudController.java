@@ -53,7 +53,7 @@ public class SoundCloudController {
             }, listener);
     }
 
-    public static void generateSoundCloudTrackUrl(String url,
+    public static void generateSoundCloudTrackUrl(final String url,
                                                   Response.Listener<SoundCloudTrackUrl> listener) {
         addToRequestQueue(Uri.parse(url).buildUpon(),
             TypeToken.get(SoundCloudTrackUrl.class), listener);

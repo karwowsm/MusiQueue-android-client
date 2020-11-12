@@ -15,9 +15,10 @@ public class TrackController extends BaseController {
 
     private static final String BASE_PATH = "/tracks";
 
-    public static void findTrack(Response.Listener<Page<Track>> listener,
+    public static void findTrack(final int pageSize, Response.Listener<Page<Track>> listener,
                                  ErrorResponse.Listener errorResponseListener) {
         Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("size", String.valueOf(pageSize));
         queryParams.put("sort", Track.Fields.queuedNumber + ",DESC");
         addToRequestQueue(Request.Method.GET, BASE_PATH, queryParams, null,
             new TypeToken<Page<Track>>() {

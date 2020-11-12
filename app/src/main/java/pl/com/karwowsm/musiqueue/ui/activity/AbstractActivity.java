@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.AbsListView;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
@@ -78,5 +79,19 @@ abstract class AbstractActivity extends AppCompatActivity {
             return true;
         }
         return false;
+    }
+
+    interface OnListViewScrollEnd extends AbsListView.OnScrollListener {
+
+        void onScrollEnd();
+
+        default void onScrollStateChanged(AbsListView view, int scrollState) {
+            if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE && !view.canScrollVertically(1)) {
+                onScrollEnd();
+            }
+        }
+
+        default void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        }
     }
 }

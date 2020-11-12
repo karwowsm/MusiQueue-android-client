@@ -36,6 +36,8 @@ public class MainActivity extends NavigationViewActivity {
     private List<Room> rooms;
     private RoomListViewAdapter roomListViewAdapter;
     private SwipeRefreshLayout swipeRefresh;
+    private int pageSize;
+    private boolean lastPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,11 @@ public class MainActivity extends NavigationViewActivity {
         roomListViewAdapter = new RoomListViewAdapter(this, R.layout.list_view_item_room, rooms);
         listView.setAdapter(roomListViewAdapter);
         listView.setOnItemClickListener((adapterView, view, pos, l) -> joinRoom(rooms.get(pos).getId()));
+        listView.setOnScrollListener((OnListViewScrollEnd) () -> {
+            if (!lastPage) {
+                getRoomsPage(pageSize + BaseController.PAGE_SIZE);
+            }
+        });
         swipeRefresh = findViewById(R.id.swipe_refresh_layout);
         setTitle(R.string.rooms);
 
@@ -125,11 +132,17 @@ public class MainActivity extends NavigationViewActivity {
     }
 
     private void getRooms() {
-        RoomController.findRoom(roomPage -> {
+        getRoomsPage(BaseController.PAGE_SIZE);
+    }
+
+    private void getRoomsPage(int size) {
+        RoomController.findRoom(size, roomPage -> {
             rooms.clear();
             rooms.addAll(roomPage.getContent());
             roomListViewAdapter.notifyDataSetChanged();
             swipeRefresh.setRefreshing(false);
+            pageSize = roomPage.getSize();
+            lastPage = roomPage.isLast();
         }, error -> swipeRefresh.setRefreshing(false));
     }
 

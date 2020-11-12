@@ -20,6 +20,8 @@ import pl.com.karwowsm.musiqueue.api.error.ErrorResponse;
 @CustomLog
 public abstract class BaseController extends TokenHolder {
 
+    public static final int PAGE_SIZE = 20;
+
     @Setter
     private static ErrorResponse.Listener baseErrorResponseListener;
 

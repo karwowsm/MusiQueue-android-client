@@ -18,9 +18,10 @@ public class RoomController extends BaseController {
 
     private static final String BASE_PATH = "/rooms";
 
-    public static void findRoom(Response.Listener<Page<Room>> listener,
+    public static void findRoom(final int pageSize, Response.Listener<Page<Room>> listener,
                                 ErrorResponse.Listener errorResponseListener) {
         Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("size", String.valueOf(pageSize));
         queryParams.put("sort", Room.Fields.startedPlayingAt + ",DESC");
         addToRequestQueue(Request.Method.GET, BASE_PATH, queryParams, null,
             new TypeToken<Page<Room>>() {

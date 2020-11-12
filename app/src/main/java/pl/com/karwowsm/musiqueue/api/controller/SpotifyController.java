@@ -59,7 +59,7 @@ public class SpotifyController {
         }, listener);
     }
 
-    public static void search(final String query, SpotifyContent.Type type, Response.Listener<Page<? extends SpotifyContent>> listener) {
+    public static void search(final String query, final SpotifyContent.Type type, Response.Listener<Page<? extends SpotifyContent>> listener) {
         String url = BASE_URL.buildUpon().appendPath("search")
             .appendQueryParameter("q", query)
             .appendQueryParameter("type", type.name().toLowerCase())
@@ -96,7 +96,7 @@ public class SpotifyController {
         }, listener);
     }
 
-    public static void getArtistAlbums(String id, Response.Listener<Page<SpotifyAlbum>> listener) {
+    public static void getArtistAlbums(final String id, Response.Listener<Page<SpotifyAlbum>> listener) {
         String url = BASE_URL.buildUpon().appendPath("artists").appendPath(id).appendPath("albums")
             .appendQueryParameter("include_groups", "album")
             .appendQueryParameter("limit", "50")
@@ -115,7 +115,7 @@ public class SpotifyController {
         }, listener);
     }
 
-    public static void getArtistTopTracks(String id, Response.Listener<SpotifyTrackList> listener) {
+    public static void getArtistTopTracks(final String id, Response.Listener<SpotifyTrackList> listener) {
         String url = BASE_URL.buildUpon().appendPath("artists").appendPath(id).appendPath("top-tracks")
             .appendQueryParameter("country", "from_token")
             .build().toString();
@@ -123,7 +123,7 @@ public class SpotifyController {
         addToRequestQueue(url, SpotifyTrackList.class, listener);
     }
 
-    public static void getAlbumTracks(String id, Response.Listener<Page<SpotifyTrackSimplified>> listener) {
+    public static void getAlbumTracks(final String id, Response.Listener<Page<SpotifyTrackSimplified>> listener) {
         String url = BASE_URL.buildUpon().appendPath("albums").appendPath(id).appendPath("tracks")
             .appendQueryParameter("market", "from_token")
             .appendQueryParameter("limit", "50")
@@ -133,7 +133,7 @@ public class SpotifyController {
         }, listener);
     }
 
-    public static void getPlaylistTracks(String id, Response.Listener<Page<SpotifyPlaylistTrack>> listener) {
+    public static void getPlaylistTracks(final String id, Response.Listener<Page<SpotifyPlaylistTrack>> listener) {
         String url = BASE_URL.buildUpon().appendPath("playlists").appendPath(id).appendPath("tracks")
             .appendQueryParameter("market", "from_token")
             .build().toString();
