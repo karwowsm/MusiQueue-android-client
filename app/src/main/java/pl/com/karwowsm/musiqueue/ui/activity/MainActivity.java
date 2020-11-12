@@ -1,6 +1,7 @@
 package pl.com.karwowsm.musiqueue.ui.activity;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,7 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import pl.com.karwowsm.musiqueue.Constants;
 import pl.com.karwowsm.musiqueue.R;
+import pl.com.karwowsm.musiqueue.api.TokenHolder;
 import pl.com.karwowsm.musiqueue.api.controller.BaseController;
 import pl.com.karwowsm.musiqueue.api.controller.RoomController;
 import pl.com.karwowsm.musiqueue.api.controller.RoomMembersController;
@@ -28,7 +31,7 @@ import pl.com.karwowsm.musiqueue.api.controller.UserAccountController;
 import pl.com.karwowsm.musiqueue.api.dto.Room;
 import pl.com.karwowsm.musiqueue.ui.adapter.RoomListViewAdapter;
 
-public class RoomSelectActivity extends NavigationViewActivity {
+public class MainActivity extends NavigationViewActivity {
 
     private List<Room> rooms;
     private RoomListViewAdapter roomListViewAdapter;
@@ -37,7 +40,7 @@ public class RoomSelectActivity extends NavigationViewActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_room_select);
+        setContentView(R.layout.activity_main);
         ListView listView = findViewById(R.id.rooms_lv);
         registerForContextMenu(listView);
         rooms = new ArrayList<>();
@@ -49,7 +52,7 @@ public class RoomSelectActivity extends NavigationViewActivity {
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            Intent intent = new Intent(getApplicationContext(), RoomCreateActivity.class);
+            Intent intent = new Intent(this, RoomCreateActivity.class);
             intent.putExtra("me", me);
             startActivity(intent);
         });
@@ -62,7 +65,7 @@ public class RoomSelectActivity extends NavigationViewActivity {
                 ? error.getMessage()
                 : getString(R.string.server_error));
         });
-        getMe();
+        init();
     }
 
     @Override
@@ -82,7 +85,7 @@ public class RoomSelectActivity extends NavigationViewActivity {
         if (room.getHost().equals(me)) {
             menu.add(Menu.NONE, 0, Menu.NONE, R.string.update)
                 .setOnMenuItemClickListener(item -> {
-                    Intent intent = new Intent(getApplicationContext(), RoomUpdateActivity.class);
+                    Intent intent = new Intent(this, RoomUpdateActivity.class);
                     intent.putExtra("room", room);
                     startActivity(intent);
                     return false;
@@ -96,13 +99,28 @@ public class RoomSelectActivity extends NavigationViewActivity {
         super.onCreateContextMenu(menu, v, menuInfo);
     }
 
+    private void init() {
+        String token = getSharedPreferences(Constants.AUTH_PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(Constants.PREF_TOKEN, null);
+        if (token != null) {
+            TokenHolder.setToken(token);
+            getMe();
+        } else {
+            logout();
+        }
+    }
+
     private void getMe() {
         UserAccountController.getMe(me -> {
             this.me = me;
             initNavigationView();
             showToast(R.string.hello, me.getUsername());
             getRooms();
+            swipeRefresh.setRefreshing(false);
             swipeRefresh.setOnRefreshListener(this::getRooms);
+        }, error -> {
+            swipeRefresh.setRefreshing(false);
+            swipeRefresh.setOnRefreshListener(this::getMe);
         });
     }
 
@@ -126,7 +144,7 @@ public class RoomSelectActivity extends NavigationViewActivity {
         RoomMembersController.joinRoom(roomId, room -> {
             handler.removeCallbacks(showDialog);
             pDialog.dismiss();
-            Intent intent = new Intent(getApplicationContext(), RoomActivity.class);
+            Intent intent = new Intent(this, RoomActivity.class);
             intent.putExtra("me", me);
             intent.putExtra("room", room);
             startActivity(intent);

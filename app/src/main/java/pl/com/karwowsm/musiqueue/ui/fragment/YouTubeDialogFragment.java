@@ -17,7 +17,7 @@ import androidx.fragment.app.DialogFragment;
 
 import java.io.Serializable;
 
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.controller.YouTubeController;
 import pl.com.karwowsm.musiqueue.api.dto.youtube.YouTubeContent;
@@ -97,7 +97,7 @@ public class YouTubeDialogFragment extends DialogFragment {
 
             trackImageView.setDefaultImageResId(R.drawable.ic_youtube);
             String imageUrl = youTubeContent.getSnippet().getDefaultThumbnail().getUrl();
-            trackImageView.setImageUrl(imageUrl, AppController.getInstance().getImageLoader());
+            trackImageView.setImageUrl(imageUrl, MusiQueueApplication.getInstance().getImageLoader());
             titleTextView.setText(youTubeContent.getSnippet().getTitle());
             artistTextView.setText(youTubeContent.getSnippet().getChannelTitle());
             return convertView;

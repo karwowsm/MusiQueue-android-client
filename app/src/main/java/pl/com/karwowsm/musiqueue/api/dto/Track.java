@@ -51,4 +51,20 @@ public class Track implements Serializable {
             return null;
         }
     }
+
+    public boolean isUploadedContent() {
+        return source.equals(Track.Source.UPLOADED);
+    }
+
+    public boolean isYouTubeContent() {
+        return source.equals(Track.Source.YOUTUBE);
+    }
+
+    public boolean isSpotifyContent() {
+        return source.equals(Track.Source.SPOTIFY);
+    }
+
+    public boolean isSoundCloudContent() {
+        return source.equals(Track.Source.SOUNDCLOUD);
+    }
 }

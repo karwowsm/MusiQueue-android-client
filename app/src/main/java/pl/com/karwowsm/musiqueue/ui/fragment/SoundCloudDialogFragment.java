@@ -17,7 +17,7 @@ import androidx.fragment.app.DialogFragment;
 
 import java.io.Serializable;
 
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.controller.SoundCloudController;
 import pl.com.karwowsm.musiqueue.api.dto.soundcloud.SoundCloudTrack;
@@ -96,7 +96,7 @@ public class SoundCloudDialogFragment extends DialogFragment {
             TextView artistTextView = convertView.findViewById(R.id.artist_tv);
 
             trackImageView.setDefaultImageResId(R.drawable.ic_soundcloud);
-            trackImageView.setImageUrl(soundCloudTrack.getArtwork_url(), AppController.getInstance().getImageLoader());
+            trackImageView.setImageUrl(soundCloudTrack.getArtwork_url(), MusiQueueApplication.getInstance().getImageLoader());
             titleTextView.setText(soundCloudTrack.getTitle());
             artistTextView.setText(soundCloudTrack.getUser().getUsername());
             return convertView;

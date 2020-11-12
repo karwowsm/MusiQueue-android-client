@@ -23,20 +23,23 @@ import ua.naiksoftware.stomp.StompClient;
 @CustomLog
 public class MessagingService extends TokenHolder {
 
-    private static final StompClient stompClient;
-    private static Disposable lifecycleSubscription;
+    private static final String BASE_PATH = "/ws/websocket";
 
-    static {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Authorization", "Bearer " + getToken());
-        stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BuildConfig.BASE_URL + "/ws/websocket", headers)
-            .withClientHeartbeat(30000);
-    }
+    private static StompClient stompClient;
+    private static Disposable lifecycleSubscription;
+    private static Runnable onOpenedConnection;
+    private static Runnable onClosedConnection;
 
     private final CompositeDisposable subscriptions = new CompositeDisposable();
 
-    public static void connect(Runnable onClosed) {
-        if (!stompClient.isConnected()) {
+    public static void connect(Runnable onOpened, Runnable onClosed) {
+        onOpenedConnection = onOpened;
+        onClosedConnection = onClosed;
+        if (stompClient == null || !stompClient.isConnected()) {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", "Bearer " + getToken());
+            stompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BuildConfig.BASE_URL + BASE_PATH, headers)
+                .withClientHeartbeat(25000);
             lifecycleSubscription = stompClient.lifecycle()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -44,13 +47,19 @@ public class MessagingService extends TokenHolder {
                     switch (lifecycleEvent.getType()) {
                         case OPENED:
                             log.d("Stomp connection opened");
+                            if (onOpenedConnection != null) {
+                                onOpenedConnection.run();
+                            }
                             break;
                         case ERROR:
                             log.e("Stomp connection error", lifecycleEvent.getException());
                             break;
                         case CLOSED:
                             log.d("Stomp connection closed");
-                            onClosed.run();
+                            if (onClosedConnection != null) {
+                                onClosedConnection.run();
+                                lifecycleSubscription.dispose();
+                            }
                             break;
                         case FAILED_SERVER_HEARTBEAT:
                             log.w("Stomp failed server heartbeat");
@@ -67,6 +76,8 @@ public class MessagingService extends TokenHolder {
             stompClient.disconnect();
             lifecycleSubscription.dispose();
         }
+        onOpenedConnection = null;
+        onClosedConnection = null;
     }
 
     public void initRoomSubscription(UUID roomId, Consumer<RoomEvent> consumer) {

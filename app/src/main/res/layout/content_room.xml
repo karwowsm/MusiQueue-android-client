@@ -16,24 +16,31 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <pl.com.karwowsm.musiqueue.ui.view.CustomNetworkImageView
-            android:id="@+id/current_track_img"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/currently_playing_box_height" />
+        <RelativeLayout
+            android:id="@+id/current_track_box_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/current_track_box_height">
 
-        <LinearLayout
-            android:id="@+id/video_box_layout"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/currently_playing_box_height"
-            android:visibility="gone">
-
-            <fragment
-                android:id="@+id/youtube_fragment"
-                android:name="com.google.android.youtube.player.YouTubePlayerAndroidXFragment"
+            <pl.com.karwowsm.musiqueue.ui.view.CustomNetworkImageView
+                android:id="@+id/current_track_img"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/video_box_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <fragment
+                    android:id="@+id/youtube_fragment"
+                    android:name="com.google.android.youtube.player.YouTubePlayerAndroidXFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
 
         <ProgressBar
             android:id="@+id/progress_bar"

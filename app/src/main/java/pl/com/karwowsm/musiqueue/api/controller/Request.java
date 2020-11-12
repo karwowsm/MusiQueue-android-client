@@ -45,7 +45,7 @@ final class Request<ReqT, ResT> extends JsonRequest<ResT> {
         try {
             String jsonString = new String(response.data,
                 HttpHeaderParser.parseCharset(response.headers, PROTOCOL_CHARSET));
-            log.v("Got response: " + jsonString);
+            log.v("Got response: " + response.statusCode + " " + jsonString);
             return Response.success(JSONSerializer.fromJson(jsonString, responseTypeToken.getType()),
                 HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {

@@ -18,14 +18,18 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class FileUtils {
 
-    public static int getFileSize(Context context, Uri uri) throws IOException {
+    public static long getFileSize(Context context, Uri uri) throws IOException {
+        try (Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
+            }
+        }
         FileDescriptor fileDescriptor = context.getContentResolver()
             .openFileDescriptor(uri, "r")
             .getFileDescriptor();
-        FileInputStream fileInputStream = new FileInputStream(fileDescriptor);
-        int fileSize = (int) fileInputStream.getChannel().size();
-        fileInputStream.close();
-        return fileSize;
+        try (FileInputStream fileInputStream = new FileInputStream(fileDescriptor)) {
+            return fileInputStream.getChannel().size();
+        }
     }
 
     public static String getFileName(Context context, Uri uri) {

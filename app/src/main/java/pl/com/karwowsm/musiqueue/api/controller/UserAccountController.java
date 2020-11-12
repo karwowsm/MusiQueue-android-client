@@ -18,8 +18,9 @@ public class UserAccountController extends BaseController {
             UserAccount.class, listener, errorResponseListener);
     }
 
-    public static void getMe(Response.Listener<UserAccount> listener) {
+    public static void getMe(Response.Listener<UserAccount> listener,
+                             ErrorResponse.Listener errorResponseListener) {
         addToRequestQueue(Request.Method.GET, BASE_PATH + "/me",
-            UserAccount.class, listener);
+            UserAccount.class, listener, errorResponseListener);
     }
 }

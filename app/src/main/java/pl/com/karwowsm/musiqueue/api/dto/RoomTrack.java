@@ -41,18 +41,18 @@ public class RoomTrack implements Serializable {
     }
 
     public boolean isUploadedContent() {
-        return track.getSource().equals(Track.Source.UPLOADED);
+        return track.isUploadedContent();
     }
 
     public boolean isYouTubeContent() {
-        return track.getSource().equals(Track.Source.YOUTUBE);
+        return track.isYouTubeContent();
     }
 
     public boolean isSpotifyContent() {
-        return track.getSource().equals(Track.Source.SPOTIFY);
+        return track.isSpotifyContent();
     }
 
     public boolean isSoundCloudContent() {
-        return track.getSource().equals(Track.Source.SOUNDCLOUD);
+        return track.isSoundCloudContent();
     }
 }

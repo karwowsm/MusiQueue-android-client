@@ -51,7 +51,7 @@ public class RoomCreateActivity extends AbstractActivity {
             createdRoom -> RoomMembersController.joinRoom(createdRoom.getId(),
                 room -> {
                     hideProgressDialog();
-                    Intent intent = new Intent(getApplicationContext(), RoomActivity.class);
+                    Intent intent = new Intent(this, RoomActivity.class);
                     intent.putExtra("me", me);
                     intent.putExtra("room", room);
                     startActivity(intent);

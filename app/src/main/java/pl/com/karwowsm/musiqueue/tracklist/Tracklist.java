@@ -2,16 +2,12 @@ package pl.com.karwowsm.musiqueue.tracklist;
 
 import android.util.Pair;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import lombok.Getter;
 import pl.com.karwowsm.musiqueue.api.dto.RoomTrack;
 import pl.com.karwowsm.musiqueue.api.dto.RoomTracklist;
-import pl.com.karwowsm.musiqueue.tracklist.player.Player;
 
 class Tracklist {
 
@@ -47,19 +43,11 @@ class Tracklist {
         tracks.remove(roomTrack);
     }
 
-    void updateCurrentTrack(RoomTrack roomTrack, Instant startedPlayingAt) {
+    void updateCurrentTrack(RoomTrack roomTrack) {
         RoomTrack currentTrack = tracks.stream()
             .filter(it -> it.getId().equals(roomTrack.getId()))
             .findFirst().get();
         setCurrentTrack(currentTrack);
-        playCurrentTrack(startedPlayingAt);
-    }
-
-    void playCurrentTrack(Instant startedPlayingAt) {
-        Player.play(currentTrack, startedPlayingAt);
-        if (!Player.isPlaying()) {
-            currentTrack.setIsPlayed(true);
-        }
     }
 
     RoomTrack getTrackOnPosition(int position) {
@@ -68,15 +56,6 @@ class Tracklist {
 
     List<RoomTrack> getQueuedTracks() {
         return tracks.subList(getPlayedCount(), tracks.size());
-    }
-
-    List<RoomTrack> getNotPlayedYet() {
-        if (currentTrack != null && !currentTrack.getIsPlayed()) {
-            return Stream.concat(Stream.of(currentTrack), getQueuedTracks().stream())
-                .collect(Collectors.toList());
-        } else {
-            return getQueuedTracks();
-        }
     }
 
     int getPlayedCount() {

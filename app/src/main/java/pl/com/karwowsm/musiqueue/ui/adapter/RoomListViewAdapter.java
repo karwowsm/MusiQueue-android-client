@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.dto.Room;
 import pl.com.karwowsm.musiqueue.api.dto.RoomTrack;
@@ -47,10 +47,10 @@ public class RoomListViewAdapter extends ArrayAdapter<Room> {
         Track currentTrack = Optional.ofNullable(room.getCurrentTrack()).map(RoomTrack::getTrack).orElse(null);
         if (currentTrack == null) {
             currentTrackImageView.setDefaultImageResId(R.drawable.ico);
-            currentTrackImageView.setImageUrl(null, AppController.getInstance().getImageLoader());
+            currentTrackImageView.setImageUrl(null, MusiQueueApplication.getInstance().getImageLoader());
         } else {
             currentTrackImageView.setDefaultImageResId(TrackUtils.getImageResId(currentTrack.getSource()));
-            currentTrackImageView.setImageUrl(currentTrack.getImageUrl(), AppController.getInstance().getImageLoader());
+            currentTrackImageView.setImageUrl(currentTrack.getImageUrl(), MusiQueueApplication.getInstance().getImageLoader());
         }
         nameTextView.setText(room.getName());
         hostTextView.setText(room.getHost().getUsername());

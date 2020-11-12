@@ -4,6 +4,7 @@ import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
+import android.os.StrictMode;
 
 import androidx.annotation.RequiresApi;
 
@@ -16,9 +17,9 @@ import lombok.CustomLog;
 import pl.com.karwowsm.musiqueue.util.LruBitmapCache;
 
 @CustomLog
-public class AppController extends Application {
+public class MusiQueueApplication extends Application {
 
-    private static AppController instance;
+    private static MusiQueueApplication instance;
 
     private RequestQueue requestQueue;
     private ImageLoader imageLoader;
@@ -31,9 +32,25 @@ public class AppController extends Application {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         }
+
+        if (BuildConfig.DEBUG) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectAll()
+                .permitDiskWrites()
+                .permitDiskReads()
+                .penaltyLog()
+                .penaltyDeath()
+                .penaltyFlashScreen()
+                .build());
+
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .build());
+        }
     }
 
-    public static synchronized AppController getInstance() {
+    public static synchronized MusiQueueApplication getInstance() {
         return instance;
     }
 
@@ -54,7 +71,7 @@ public class AppController extends Application {
     private void createNotificationChannel() {
         NotificationChannel channel = new NotificationChannel(
             Constants.NOTIFICATION_CHANNEL_ID,
-            getString(R.string.currently_playing_notification_channel),
+            getString(R.string.current_room_notification_channel),
             NotificationManager.IMPORTANCE_LOW);
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);

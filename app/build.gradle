@@ -35,7 +35,12 @@ android {
         }
 
         debug {
-            addConstants(owner, 'http', '192.168.1.101', '8080')
+            addConstants(owner, 'https', 'musiqueue.herokuapp.com', '443')
+        }
+        dev {
+            initWith debug
+
+            addConstants(owner, 'http', InetAddress.localHost.hostAddress, '8080')
         }
         release {
             addConstants(owner, 'https', 'musiqueue.herokuapp.com', '443')
@@ -89,5 +94,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.10'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.0'
 }

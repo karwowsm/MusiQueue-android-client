@@ -15,13 +15,13 @@
     <string name="email">Email</string>
     <string name="confirm_password">Confirm password</string>
     <string name="register">Register</string>
-    <string name="agreement">By registration you agree with our %1$s and %2$s.</string>
+    <string name="agreement">By registration, you agree to the %1$s and %2$s.</string>
     <string name="btn_link_to_login">I have an account. <b>Login</b>.</string>
     <string name="empty_field">must not be empty</string>
     <string name="registering">Registering…</string>
     <string name="registration_success">User successfully registered. Try login now!</string>
 
-    <!--    RoomSelectActivity -->
+    <!--    MainActivity -->
     <string name="hello">Hello %s!</string>
     <string name="rooms">Rooms</string>
     <string name="room_members">Room members</string>
@@ -111,5 +111,5 @@
     <string name="not_developed_yet">Not developed yet.</string>
 
     <!--    NotificationChannels -->
-    <string name="currently_playing_notification_channel">Currently playing track</string>
+    <string name="current_room_notification_channel">Current room</string>
 </resources>

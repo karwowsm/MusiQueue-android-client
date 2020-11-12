@@ -11,8 +11,8 @@ import java.util.Map;
 
 import lombok.CustomLog;
 import lombok.Setter;
-import pl.com.karwowsm.musiqueue.AppController;
 import pl.com.karwowsm.musiqueue.BuildConfig;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.api.JSONSerializer;
 import pl.com.karwowsm.musiqueue.api.dto.youtube.Page;
 import pl.com.karwowsm.musiqueue.api.dto.youtube.YouTubeContent;
@@ -31,8 +31,8 @@ public class YouTubeController {
     private static YouTubeErrorResponse.Listener errorResponseListener;
 
     public static void init() {
-        String packageName = AppController.getInstance().getPackageName();
-        String signature = SignatureUtils.getSignature(AppController.getInstance().getPackageManager(), packageName);
+        String packageName = MusiQueueApplication.getInstance().getPackageName();
+        String signature = SignatureUtils.getSignature(MusiQueueApplication.getInstance().getPackageManager(), packageName);
         headers.put("X-Android-Package", packageName);
         headers.put("X-Android-Cert", signature);
     }
@@ -87,6 +87,6 @@ public class YouTubeController {
             }
         });
 
-        AppController.getInstance().addToRequestQueue(request);
+        MusiQueueApplication.getInstance().addToRequestQueue(request);
     }
 }

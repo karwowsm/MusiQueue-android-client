@@ -1,6 +1,7 @@
 package pl.com.karwowsm.musiqueue.api.controller;
 
 import android.app.ProgressDialog;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Pair;
@@ -21,10 +22,12 @@ import java.util.concurrent.Executors;
 
 import lombok.CustomLog;
 import pl.com.karwowsm.musiqueue.BuildConfig;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.api.JSONSerializer;
 import pl.com.karwowsm.musiqueue.api.dto.RoomTracklist;
 import pl.com.karwowsm.musiqueue.api.error.ErrorResponse;
 import pl.com.karwowsm.musiqueue.api.request.RoomTrackCreateRequest;
+import pl.com.karwowsm.musiqueue.util.FileUtils;
 
 public class RoomTracklistController extends BaseController {
 
@@ -35,11 +38,11 @@ public class RoomTracklistController extends BaseController {
             RoomTracklist.class, listener);
     }
 
-    public static void uploadTrack(final UUID id, final InputStream inputStream,
+    public static void uploadTrack(final UUID id, final Uri fileUri,
                                    ProgressDialog progressDialog, ErrorResponse.Listener errorResponseListener,
-                                   String fileName, int fileSize) {
+                                   int fileSize) {
 
-        new TrackUploadTask(String.format(BASE_PATH, id), inputStream, fileName, fileSize, getToken(),
+        new TrackUploadTask(String.format(BASE_PATH, id), fileUri, fileSize, getToken(),
             progressDialog, errorResponseListener).execute();
     }
 
@@ -76,19 +79,17 @@ public class RoomTracklistController extends BaseController {
         private final Executor executor = Executors.newSingleThreadExecutor();
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final String url;
-        private final InputStream inputStream;
-        private final String fileName;
+        private final Uri fileUri;
         private final int fileSize;
         private final String token;
         private final ProgressDialog progressDialog;
         private final ErrorResponse.Listener errorResponseListener;
 
-        public TrackUploadTask(String path, InputStream inputStream, String fileName, int fileSize,
+        public TrackUploadTask(String path, Uri fileUri, int fileSize,
                                String token, ProgressDialog progressDialog,
                                ErrorResponse.Listener errorResponseListener) {
             url = BuildConfig.BASE_URL + path;
-            this.inputStream = inputStream;
-            this.fileName = fileName;
+            this.fileUri = fileUri;
             this.fileSize = fileSize;
             this.token = token;
             this.progressDialog = progressDialog;
@@ -111,6 +112,8 @@ public class RoomTracklistController extends BaseController {
             HttpURLConnection.setFollowRedirects(false);
             HttpURLConnection httpURLConnection = null;
             try {
+                InputStream inputStream = FileUtils.openInputStream(MusiQueueApplication.getInstance().getApplicationContext(), fileUri);
+                String fileName = FileUtils.getFileName(MusiQueueApplication.getInstance().getApplicationContext(), fileUri);
                 httpURLConnection = (HttpURLConnection) new URL(url).openConnection();
                 httpURLConnection.setRequestMethod("PATCH");
                 httpURLConnection.setRequestProperty("Authorization", "Bearer " + token);
@@ -121,9 +124,9 @@ public class RoomTracklistController extends BaseController {
                     "Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"" +
                     LINE_END + LINE_END;
 
-                long requestLength = stringData.length() + fileSize + TAIL.length();
-                httpURLConnection.setRequestProperty("Content-length", "" + requestLength);
-                httpURLConnection.setFixedLengthStreamingMode((int) requestLength);
+                int requestLength = stringData.length() + fileSize + TAIL.length();
+                httpURLConnection.setRequestProperty("Content-length", String.valueOf(requestLength));
+                httpURLConnection.setFixedLengthStreamingMode(requestLength);
                 httpURLConnection.connect();
 
                 DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
@@ -140,22 +143,23 @@ public class RoomTracklistController extends BaseController {
                     progress += bytesRead;
                     onProgressUpdate(progress);
                 }
+                bufferedInputStream.close();
 
                 dataOutputStream.writeBytes(TAIL);
                 dataOutputStream.flush();
                 dataOutputStream.close();
 
-                InputStream inputStream = httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_CREATED
+                InputStream responseInputStream = httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_CREATED
                     ? httpURLConnection.getInputStream()
                     : httpURLConnection.getErrorStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(responseInputStream));
                 String line;
                 StringBuilder result = new StringBuilder();
                 while ((line = bufferedReader.readLine()) != null) {
                     result.append(line);
                 }
                 bufferedReader.close();
-                inputStream.close();
+                responseInputStream.close();
 
                 return new Pair<>(httpURLConnection.getResponseCode(), result.toString());
             } catch (Exception e) {

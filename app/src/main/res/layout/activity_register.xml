@@ -19,8 +19,6 @@
             android:id="@+id/username_et"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="3dp"
             android:autofillHints=".AUTOFILL_HINT_NEW_USERNAME"
             android:hint="@string/username"
             android:inputType="textCapWords"
@@ -31,8 +29,7 @@
             android:id="@+id/username_error_tv"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:lines="2"
+            android:layout_marginBottom="5dp"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -40,7 +37,6 @@
             android:id="@+id/email_et"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
             android:autofillHints=".AUTOFILL_HINT_EMAIL_ADDRESS"
             android:hint="@string/email"
             android:inputType="textEmailAddress"
@@ -51,8 +47,7 @@
             android:id="@+id/email_error_tv"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:lines="2"
+            android:layout_marginBottom="5dp"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -60,7 +55,6 @@
             android:id="@+id/password_et"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
             android:autofillHints=".AUTOFILL_HINT_NEW_PASSWORD"
             android:hint="@string/password"
             android:inputType="textPassword"
@@ -71,8 +65,7 @@
             android:id="@+id/password_error_tv"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:lines="2"
+            android:layout_marginBottom="5dp"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -80,7 +73,6 @@
             android:id="@+id/password_confirmation_et"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
             android:autofillHints=".AUTOFILL_HINT_NEW_PASSWORD"
             android:hint="@string/confirm_password"
             android:inputType="textPassword"
@@ -91,16 +83,15 @@
             android:id="@+id/password_confirmation_error_tv"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:lines="1"
+            android:layout_marginBottom="5dp"
             android:textSize="12sp"
             android:textStyle="bold" />
 
         <Button
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dip"
-            android:layout_marginBottom="6dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="5dp"
             android:background="@color/colorAccent"
             android:onClick="onRegister"
             android:text="@string/register" />
@@ -116,7 +107,7 @@
         <Button
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="21dip"
+            android:layout_marginTop="20dp"
             android:background="@null"
             android:onClick="onLogin"
             android:text="@string/btn_link_to_login"

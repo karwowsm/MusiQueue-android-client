@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 import lombok.CustomLog;
 import lombok.Setter;
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.api.dto.soundcloud.Page;
 import pl.com.karwowsm.musiqueue.api.dto.soundcloud.SoundCloudTrack;
 import pl.com.karwowsm.musiqueue.api.dto.soundcloud.SoundCloudTrackUrl;
@@ -27,7 +27,7 @@ public class SoundCloudController {
     private static Response.ErrorListener errorListener;
 
     public static void getClientId() {
-        StringRequest request = new StringRequest("https://a-v2.sndcdn.com/assets/2-fb73347f-3.js", response -> {
+        StringRequest request = new StringRequest("https://soundcloud.com", response -> {
             Matcher matcher = Pattern.compile("[\\s\\S]*client_id=([0-9a-zA-z]{32})[\\s\\S]*")
                 .matcher(response);
             if (matcher.matches()) {
@@ -39,7 +39,7 @@ public class SoundCloudController {
                 errorListener.onErrorResponse(error);
             });
 
-        AppController.getInstance().addToRequestQueue(request);
+        MusiQueueApplication.getInstance().addToRequestQueue(request);
     }
 
     public static void searchTracks(final String query,
@@ -72,6 +72,6 @@ public class SoundCloudController {
             errorListener.onErrorResponse(error);
         });
 
-        AppController.getInstance().addToRequestQueue(request);
+        MusiQueueApplication.getInstance().addToRequestQueue(request);
     }
 }

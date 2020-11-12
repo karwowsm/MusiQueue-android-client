@@ -2,11 +2,11 @@ package pl.com.karwowsm.musiqueue.util;
 
 import com.google.android.youtube.player.YouTubePlayer;
 
-import lombok.AllArgsConstructor;
 import lombok.CustomLog;
+import lombok.RequiredArgsConstructor;
 
 @CustomLog
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class YouTubePlayerCallback implements YouTubePlayer.PlayerStateChangeListener, YouTubePlayer.PlaybackEventListener {
 
     private final Listener listener;
@@ -20,12 +20,12 @@ public class YouTubePlayerCallback implements YouTubePlayer.PlayerStateChangeLis
     @Override
     public void onPaused() {
         log.d("PlaybackEvent: onPaused");
+        listener.onPaused();
     }
 
     @Override
     public void onStopped() {
         log.d("PlaybackEvent: onStopped");
-        listener.onStopped();
     }
 
     @Override
@@ -46,6 +46,7 @@ public class YouTubePlayerCallback implements YouTubePlayer.PlayerStateChangeLis
     @Override
     public void onLoaded(String s) {
         log.d("PlayerStateChange: onLoaded " + s);
+        listener.onLoaded();
     }
 
     @Override
@@ -67,13 +68,18 @@ public class YouTubePlayerCallback implements YouTubePlayer.PlayerStateChangeLis
     @Override
     public void onError(YouTubePlayer.ErrorReason errorReason) {
         log.d("PlayerStateChange: onError " + errorReason);
+        if (errorReason == YouTubePlayer.ErrorReason.UNAUTHORIZED_OVERLAY) {
+            listener.onPaused();
+        }
     }
 
     public interface Listener {
 
+        void onLoaded();
+
         void onPlaying();
 
-        void onStopped();
+        void onPaused();
 
         void onVideoEnded();
     }

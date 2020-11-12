@@ -17,6 +17,10 @@ public class Logger {
 
     public void v(String msg) {
         if (BuildConfig.DEBUG) {
+            int newLineIndex = msg.indexOf('\n');
+            if (newLineIndex != -1) {
+                msg = msg.substring(0, newLineIndex) + "...";
+            }
             Log.v(tag, msg);
         }
     }

@@ -24,7 +24,6 @@ public class LoginActivity extends AbstractActivity {
         usernameEditText = findViewById(R.id.username_et);
         passwordEditText = findViewById(R.id.password_et);
         setBarsColor(R.color.colorPrimary);
-        loadPreferences();
     }
 
     public void onLogin(View view) {
@@ -35,17 +34,7 @@ public class LoginActivity extends AbstractActivity {
     }
 
     public void onSignUp(View view) {
-        startActivity(new Intent(getApplicationContext(), RegisterActivity.class));
-    }
-
-    private void loadPreferences() {
-        String token = getSharedPreferences(Constants.TOKEN_PREFS_NAME, Context.MODE_PRIVATE)
-            .getString(Constants.PREF_TOKEN, null);
-        if (token != null) {
-            TokenHolder.setToken(token);
-            startActivity(new Intent(getApplicationContext(), RoomSelectActivity.class));
-            finish();
-        }
+        startActivity(new Intent(this, RegisterActivity.class));
     }
 
     private void loginUser(final TokenCreateRequest request) {
@@ -53,7 +42,9 @@ public class LoginActivity extends AbstractActivity {
         LoginController.login(request, token -> {
             hideProgressDialog();
             saveToken(token.getAccess_token());
-            startActivity(new Intent(getApplicationContext(), RoomSelectActivity.class));
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
         }, error -> {
             hideProgressDialog();
             showToast(error != null
@@ -63,7 +54,7 @@ public class LoginActivity extends AbstractActivity {
     }
 
     private void saveToken(String token) {
-        getSharedPreferences(Constants.TOKEN_PREFS_NAME, Context.MODE_PRIVATE)
+        getSharedPreferences(Constants.AUTH_PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(Constants.PREF_TOKEN, token)
             .apply();

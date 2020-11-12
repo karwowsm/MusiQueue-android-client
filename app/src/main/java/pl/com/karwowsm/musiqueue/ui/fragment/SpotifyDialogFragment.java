@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -25,11 +24,11 @@ import pl.com.karwowsm.musiqueue.api.dto.spotify.SpotifyContent;
 public class SpotifyDialogFragment extends DialogFragment {
 
     private ViewPager viewPager;
+    private Listener listener;
 
     @Override
     public void setArguments(Bundle args) {
-        Listener listener = (Listener) args.get(Listener.BUNDLE_KEY);
-        SpotifyContentFragment.setListener(listener);
+        listener = (Listener) args.get(Listener.BUNDLE_KEY);
     }
 
     @Override
@@ -38,9 +37,9 @@ public class SpotifyDialogFragment extends DialogFragment {
         TabLayout tabLayout = rootView.findViewById(R.id.tab_layout);
         viewPager = rootView.findViewById(R.id.view_pager);
         final Adapter adapter = new Adapter(getChildFragmentManager());
-        adapter.addFragment(getString(R.string.tracks), SpotifyContentFragment.createInstance(SpotifyContentFragment.Type.TRACKS));
-        adapter.addFragment(getString(R.string.artists), SpotifyContentFragment.createInstance(SpotifyContentFragment.Type.ARTISTS));
-        adapter.addFragment(getString(R.string.playlists), SpotifyContentFragment.createInstance(SpotifyContentFragment.Type.PLAYLISTS));
+        adapter.addFragment(getString(R.string.tracks), new SpotifyContentFragment(SpotifyContentFragment.Type.TRACKS, listener));
+        adapter.addFragment(getString(R.string.artists), new SpotifyContentFragment(SpotifyContentFragment.Type.ARTISTS, listener));
+        adapter.addFragment(getString(R.string.playlists), new SpotifyContentFragment(SpotifyContentFragment.Type.PLAYLISTS, listener));
         viewPager.setAdapter(adapter);
         Toolbar toolbar = rootView.findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.spotify);
@@ -58,38 +57,38 @@ public class SpotifyDialogFragment extends DialogFragment {
     }
 
     private SpotifyContentFragment getCurrentFragment() {
-        return ((SpotifyContentFragment) ((Adapter) viewPager.getAdapter())
-            .getItem(viewPager.getCurrentItem()));
+        return ((Adapter) viewPager.getAdapter())
+            .getItem(viewPager.getCurrentItem());
     }
 
     private static class Adapter extends FragmentPagerAdapter {
 
-        final List<Fragment> fragmentCollection = new ArrayList<>();
-        final List<String> titleCollection = new ArrayList<>();
+        private final List<String> titles = new ArrayList<>();
+        private final List<SpotifyContentFragment> fragments = new ArrayList<>();
 
         Adapter(FragmentManager fm) {
             super(fm, FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         }
 
-        void addFragment(String title, Fragment fragment) {
-            titleCollection.add(title);
-            fragmentCollection.add(fragment);
+        void addFragment(String title, SpotifyContentFragment fragment) {
+            titles.add(title);
+            fragments.add(fragment);
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return titleCollection.get(position);
+            return titles.get(position);
         }
 
         @NonNull
         @Override
-        public Fragment getItem(int position) {
-            return fragmentCollection.get(position);
+        public SpotifyContentFragment getItem(int position) {
+            return fragments.get(position);
         }
 
         @Override
         public int getCount() {
-            return fragmentCollection.size();
+            return fragments.size();
         }
     }
 

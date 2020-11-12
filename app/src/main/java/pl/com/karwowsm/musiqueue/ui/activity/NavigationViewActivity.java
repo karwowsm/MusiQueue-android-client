@@ -15,10 +15,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
-import pl.com.karwowsm.musiqueue.AppController;
 import pl.com.karwowsm.musiqueue.Constants;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.TokenHolder;
+import pl.com.karwowsm.musiqueue.api.controller.BaseController;
 import pl.com.karwowsm.musiqueue.api.dto.UserAccount;
 
 public abstract class NavigationViewActivity extends AbstractActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -35,8 +35,8 @@ public abstract class NavigationViewActivity extends AbstractActivity implements
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        if (id == R.id.tracks_nav_menu_item) {
-            Intent intent = new Intent(getApplicationContext(), TracksActivity.class);
+        if (id == R.id.tracks_nav_menu_item && !(this instanceof TracksActivity)) {
+            Intent intent = new Intent(this, TracksActivity.class);
             intent.putExtra("me", me);
             startActivity(intent);
         } else if (id == R.id.share_nav_menu_item) {
@@ -81,12 +81,14 @@ public abstract class NavigationViewActivity extends AbstractActivity implements
 
     void logout() {
         clearToken();
-        startActivity(new Intent(AppController.getInstance().getApplicationContext(), LoginActivity.class));
-        finish();
+        BaseController.setBaseErrorResponseListener(null);
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
     private void clearToken() {
-        getSharedPreferences(Constants.TOKEN_PREFS_NAME, Context.MODE_PRIVATE)
+        getSharedPreferences(Constants.AUTH_PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(Constants.PREF_TOKEN, null)
             .apply();

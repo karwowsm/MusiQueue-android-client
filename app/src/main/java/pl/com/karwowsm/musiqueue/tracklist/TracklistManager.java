@@ -1,24 +1,18 @@
 package pl.com.karwowsm.musiqueue.tracklist;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.StringRes;
-import androidx.core.app.NotificationCompat;
 
 import com.google.android.exoplayer2.SimpleExoPlayer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +21,6 @@ import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
-import pl.com.karwowsm.musiqueue.Constants;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.controller.RoomTracklistController;
 import pl.com.karwowsm.musiqueue.api.controller.SpotifyController;
@@ -44,8 +37,8 @@ import pl.com.karwowsm.musiqueue.api.dto.spotify.SpotifyTrackSimplified;
 import pl.com.karwowsm.musiqueue.api.dto.youtube.YouTubeContent;
 import pl.com.karwowsm.musiqueue.api.request.RoomTrackCreateRequest;
 import pl.com.karwowsm.musiqueue.api.ws.MessagingService;
+import pl.com.karwowsm.musiqueue.service.RoomService;
 import pl.com.karwowsm.musiqueue.tracklist.player.Player;
-import pl.com.karwowsm.musiqueue.ui.activity.LoginActivity;
 import pl.com.karwowsm.musiqueue.ui.adapter.RoomTrackListViewAdapter;
 import pl.com.karwowsm.musiqueue.ui.view.CurrentTrackView;
 import pl.com.karwowsm.musiqueue.util.ExoPlayerCallback;
@@ -62,9 +55,11 @@ public class TracklistManager {
     private Tracklist tracklist;
     private RoomTrackListViewAdapter roomTrackListViewAdapter;
     @Setter
-    private Runnable onYouTubeLoggingInRequisition;
+    private Runnable youTubePlayerInitializer;
     @Setter
     private Runnable onSpotifyLoggingInRequisition;
+    @Setter
+    private Runnable spotifyPlayerInitializer;
 
     private Toast toast;
 
@@ -85,24 +80,24 @@ public class TracklistManager {
                 roomTracklist.getTracklist());
             listView.setAdapter(roomTrackListViewAdapter);
             tracklist = new Tracklist(roomTracklist);
-            if (tracklist.getCurrentTrack() != null) {
-                playCurrentTrack(roomTracklist.getStartedPlayingAt());
-                listView.setSelection(tracklist.getCurrentTrack().getIndex());
+            if (getCurrentTrack() != null) {
+                play(roomTracklist.getStartedPlayingAt());
+                listView.setSelection(getCurrentTrack().getIndex());
             }
-            checkIfRequiredPlayersAreInitialized(tracklist.getNotPlayedYet());
+            requestLoggingInToSpotifyIfNeeded(tracklist.getQueuedTracks());
             listView.setOnItemClickListener((adapterView, view, pos, l) -> {
                 if (pos < tracklist.getPlayedCount()) {
                     showToast(R.string.on_played_click);
                     return;
                 }
-                if (isItMine(tracklist.getCurrentTrack())) {
+                if (isItMine(getCurrentTrack())) {
                     for (int i = tracklist.getPlayedCount(); i < pos; i++) {
                         if (!isItMine(roomTrackListViewAdapter.getItem(i))) {
                             showToast(R.string.refusal_to_play);
                             return;
                         }
                     }
-                    requestPlaying(roomTrackListViewAdapter.getItem(pos));
+                    RoomTracklistController.playTrack(roomId, roomTrackListViewAdapter.getItem(pos).getId());
                 } else {
                     showToast(R.string.refusal_to_play);
                 }
@@ -111,15 +106,14 @@ public class TracklistManager {
                 switch (message.getType()) {
                     case ADDED:
                         tracklist.add(message.getTrack());
-                        checkIfRequiredPlayerIsInitialized(message.getTrack());
+                        requestLoggingInToSpotifyIfNeeded(message.getTrack());
                         break;
                     case DELETED:
                         tracklist.delete(message.getTrack());
                         break;
                     case PLAYED:
-                        tracklist.updateCurrentTrack(message.getTrack(), message.getTimestamp());
-                        checkIfRequiredPlayerIsInitialized(message.getTrack());
-                        afterPlay();
+                        tracklist.updateCurrentTrack(message.getTrack());
+                        play(message.getTimestamp());
                         break;
                 }
                 roomTrackListViewAdapter.notifyDataSetChanged();
@@ -128,15 +122,13 @@ public class TracklistManager {
     }
 
     public void addFileContent(Uri uri) throws IOException {
-        int fileSize = FileUtils.getFileSize(context, uri);
+        int fileSize = (int) FileUtils.getFileSize(context, uri);
         Resources resources = context.getResources();
         int uploadFileSizeLimit = resources.getInteger(R.integer.uploadFileSizeLimit);
         if (fileSize > uploadFileSizeLimit) {
             showToast(R.string.file_too_large, uploadFileSizeLimit / 1024 / 1024);
             return;
         }
-        String fileName = FileUtils.getFileName(context, uri);
-        InputStream inputStream = FileUtils.openInputStream(context, uri);
 
         ProgressDialog progressDialog = new ProgressDialog(context);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -144,13 +136,13 @@ public class TracklistManager {
         progressDialog.setCancelable(false);
         progressDialog.setMax(fileSize);
 
-        RoomTracklistController.uploadTrack(roomId, inputStream, progressDialog, error -> {
+        RoomTracklistController.uploadTrack(roomId, uri, progressDialog, error -> {
             if (error != null) {
                 showToast(error.getMessage());
             } else {
                 showToast(R.string.uploading_track_failed);
             }
-        }, fileName, fileSize);
+        }, fileSize);
     }
 
     public void addYouTubeContent(YouTubeContent youTubeContent) {
@@ -200,7 +192,7 @@ public class TracklistManager {
     }
 
     public void requestPlayingNext() {
-        tracklist.getCurrentTrack().setIsPlayed(true);
+        getCurrentTrack().setIsPlayed(true);
         roomTrackListViewAdapter.notifyDataSetChanged();
         Player.stop();
         if (!tracklist.getQueuedTracks().isEmpty()) {
@@ -226,15 +218,15 @@ public class TracklistManager {
     }
 
     public long getUserQueuedTracksCount() {
-        int ret = tracklist.getCurrentTrack() != null && isItMine(tracklist.getCurrentTrack()) ? 1 : 0;
+        int ret = getCurrentTrack() != null && isItMine(getCurrentTrack()) ? 1 : 0;
         List<RoomTrack> queuedTracks = tracklist.getQueuedTracks();
         return ret + queuedTracks.stream().filter(this::isItMine).count();
     }
 
-    public void playBySourceIfNeeded(Track.Source... sources) {
-        RoomTrack currentTrack = tracklist.getCurrentTrack();
-        if (currentTrack != null && Arrays.stream(sources).anyMatch(source -> currentTrack.getTrack().getSource().equals(source))) {
-            playCurrentTrack(Player.getStartedPlayingAt());
+    public void playBySourceIfNeeded(Track.Source source) {
+        RoomTrack currentTrack = getCurrentTrack();
+        if (currentTrack != null && currentTrack.getTrack().getSource().equals(source)) {
+            play(Player.getStartedPlayingAt());
         }
     }
 
@@ -242,7 +234,8 @@ public class TracklistManager {
         messagingService.unsubscribe();
         Player.stop();
         Player.releaseExoPlayer();
-        Player.setYouTubePlayer(null);
+        Player.releaseYouTubePlayer();
+        Player.setSpotifyPlayer(null);
         currentTrackView.finish();
     }
 
@@ -281,57 +274,49 @@ public class TracklistManager {
         return roomTrack.getOwner().getId().equals(me.getId());
     }
 
-    private void checkIfRequiredPlayerIsInitialized(RoomTrack track) {
-        checkIfRequiredPlayersAreInitialized(Collections.singleton(track));
+    private void play(Instant startedPlayingAt) {
+        RoomTrack currentTrack = getCurrentTrack();
+        if (Player.prepare(currentTrack, startedPlayingAt)) {
+            initRequiredPlayerIfNeeded();
+            Player.play(currentTrack);
+        }
+        if (Player.isPlaying()) {
+            RoomService.updateNotification(context, currentTrack.getTrack());
+        } else {
+            currentTrack.setIsPlayed(true);
+            requestPlayingNext();
+        }
+        currentTrackView.update(currentTrack.getTrack());
     }
 
-    private void checkIfRequiredPlayersAreInitialized(Collection<RoomTrack> tracks) {
-        if (!Player.isExoPlayerSet() && tracks.stream().anyMatch(roomTrack -> roomTrack.isUploadedContent() || roomTrack.isSoundCloudContent())) {
-            SimpleExoPlayer exoPlayer = new SimpleExoPlayer.Builder(context).build();
-            exoPlayer.addListener(new ExoPlayerCallback(this::requestPlayingNext));
-            Player.setExoPlayer(exoPlayer);
-            playBySourceIfNeeded(Track.Source.UPLOADED, Track.Source.SOUNDCLOUD);
-        }
-        if (!Player.isYouTubePlayerSet() && tracks.stream().anyMatch(RoomTrack::isYouTubeContent)) {
-            onYouTubeLoggingInRequisition.run();
-        }
-        if (!Player.isSpotifyPlayerSet() && tracks.stream().anyMatch(RoomTrack::isSpotifyContent)) {
+    private void requestLoggingInToSpotifyIfNeeded(RoomTrack track) {
+        requestLoggingInToSpotifyIfNeeded(Collections.singleton(track));
+    }
+
+    private void requestLoggingInToSpotifyIfNeeded(Collection<RoomTrack> tracks) {
+        if (!SpotifyController.isInitialized() && tracks.stream().anyMatch(RoomTrack::isSpotifyContent)) {
             onSpotifyLoggingInRequisition.run();
         }
     }
 
-    private void requestPlaying(RoomTrack roomTrack) {
-        RoomTracklistController.playTrack(roomId, roomTrack.getId());
-    }
-
-    private void playCurrentTrack(Instant startedPlayingAt) {
-        tracklist.playCurrentTrack(startedPlayingAt);
-        afterPlay();
-    }
-
-    private void afterPlay() {
-        if (Player.isPlaying()) {
-            updateNotification();
-        } else {
-            requestPlayingNext();
+    private void initRequiredPlayerIfNeeded() {
+        RoomTrack currentTrack = getCurrentTrack();
+        if (!Player.isExoPlayerSet() && (currentTrack.isUploadedContent() || currentTrack.isSoundCloudContent())) {
+            SimpleExoPlayer exoPlayer = new SimpleExoPlayer.Builder(context).build();
+            exoPlayer.addListener(new ExoPlayerCallback(this::requestPlayingNext));
+            exoPlayer.setVolume(Player.isMuted() ? 0 : 1);
+            Player.setExoPlayer(exoPlayer);
         }
-        currentTrackView.update(tracklist.getCurrentTrack().getTrack());
-    }
-
-    private void updateNotification() {
-        RoomTrack roomTrack = tracklist.getCurrentTrack();
-        Intent intent = new Intent(context, LoginActivity.class);
-        intent.setAction(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(roomTrack.getTrack().getTitle())
-            .setContentText(roomTrack.getTrack().getArtist())
-            .setSmallIcon(R.drawable.ico)
-            .setOngoing(true)
-            .setContentIntent(pendingIntent);
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(Constants.NOTIFICATION_ID, notificationBuilder.build());
+        if (!Player.isYouTubePlayerSet() && currentTrack.isYouTubeContent()) {
+            youTubePlayerInitializer.run();
+        }
+        if (!Player.isSpotifyPlayerSet() && currentTrack.isSpotifyContent()) {
+            if (!SpotifyController.isInitialized()) {
+                onSpotifyLoggingInRequisition.run();
+            } else {
+                spotifyPlayerInitializer.run();
+            }
+        }
     }
 
     void showToast(@StringRes int id, Object... formatArgs) {

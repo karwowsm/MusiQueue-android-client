@@ -22,8 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
-import lombok.Setter;
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.controller.SpotifyController;
 import pl.com.karwowsm.musiqueue.api.dto.spotify.Page;
@@ -33,21 +32,18 @@ import pl.com.karwowsm.musiqueue.ui.view.CustomNetworkImageView;
 
 public class SpotifyContentFragment extends Fragment {
 
-    @Setter
-    private static SpotifyDialogFragment.Listener listener;
+    private final List<SpotifyContent> items = new ArrayList<>();
+    private final SpotifyDialogFragment.Listener listener;
 
-    private SearchView searchView;
-    private List<SpotifyContent> items;
     @Getter
     private Type contentType;
+    private SearchView searchView;
     private Adapter adapter;
     private SpotifyContent artist;
 
-    public static SpotifyContentFragment createInstance(Type contentType) {
-        SpotifyContentFragment fragment = new SpotifyContentFragment();
-        fragment.items = new ArrayList<>();
-        fragment.contentType = contentType;
-        return fragment;
+    public SpotifyContentFragment(Type contentType, SpotifyDialogFragment.Listener listener) {
+        this.contentType = contentType;
+        this.listener = listener;
     }
 
     @Override
@@ -179,7 +175,7 @@ public class SpotifyContentFragment extends Fragment {
             TextView descriptionTextView = convertView.findViewById(R.id.description_tv);
 
             imageView.setDefaultImageResId(R.drawable.ic_spotify);
-            imageView.setImageUrl(spotifyContent.getImageUrl(), AppController.getInstance().getImageLoader());
+            imageView.setImageUrl(spotifyContent.getImageUrl(), MusiQueueApplication.getInstance().getImageLoader());
             nameTextView.setText(spotifyContent.getName());
             if (contentType == Type.TRACKS) {
                 TextView artistTextView = convertView.findViewById(R.id.artist_tv);

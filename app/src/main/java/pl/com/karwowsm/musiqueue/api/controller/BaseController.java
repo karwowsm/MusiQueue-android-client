@@ -11,8 +11,8 @@ import java.util.Map;
 
 import lombok.CustomLog;
 import lombok.Setter;
-import pl.com.karwowsm.musiqueue.AppController;
 import pl.com.karwowsm.musiqueue.BuildConfig;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.api.JSONSerializer;
 import pl.com.karwowsm.musiqueue.api.TokenHolder;
 import pl.com.karwowsm.musiqueue.api.error.ErrorResponse;
@@ -37,10 +37,17 @@ public abstract class BaseController extends TokenHolder {
         addToRequestQueue(method, path, jsonRequest, Void.class, listener, null);
     }
 
-    static <ReqT, ResT> void addToRequestQueue(int method, String path,
-                                               Class<ResT> responseClass,
-                                               Response.Listener<ResT> listener) {
-        addToRequestQueue(method, path, null, responseClass, listener, null);
+    static <ResT> void addToRequestQueue(int method, String path,
+                                         Class<ResT> responseClass,
+                                         Response.Listener<ResT> listener) {
+        addToRequestQueue(method, path, responseClass, listener, null);
+    }
+
+    static <ResT> void addToRequestQueue(int method, String path,
+                                         Class<ResT> responseClass,
+                                         Response.Listener<ResT> listener,
+                                         ErrorResponse.Listener errorResponseListener) {
+        addToRequestQueue(method, path, null, responseClass, listener, errorResponseListener);
     }
 
     static <ReqT, ResT> void addToRequestQueue(int method, String path, ReqT jsonRequest,
@@ -83,7 +90,7 @@ public abstract class BaseController extends TokenHolder {
             }
         });
 
-        AppController.getInstance().addToRequestQueue(request);
+        MusiQueueApplication.getInstance().addToRequestQueue(request);
     }
 
     static void onErrorResponse(ErrorResponse errorResponse) {

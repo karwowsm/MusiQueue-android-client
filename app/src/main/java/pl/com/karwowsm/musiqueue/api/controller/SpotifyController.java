@@ -4,12 +4,15 @@ import android.net.Uri;
 
 import com.android.volley.Response;
 import com.google.gson.reflect.TypeToken;
+import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 
 import lombok.CustomLog;
+import lombok.Getter;
 import lombok.Setter;
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.api.JSONSerializer;
 import pl.com.karwowsm.musiqueue.api.dto.spotify.Page;
 import pl.com.karwowsm.musiqueue.api.dto.spotify.SpotifyAlbum;
@@ -22,15 +25,29 @@ import pl.com.karwowsm.musiqueue.api.dto.spotify.SpotifyTrack;
 import pl.com.karwowsm.musiqueue.api.dto.spotify.SpotifyTrackList;
 import pl.com.karwowsm.musiqueue.api.dto.spotify.SpotifyTrackSimplified;
 import pl.com.karwowsm.musiqueue.api.error.SpotifyErrorResponse;
-import pl.com.karwowsm.musiqueue.util.SpotifyCallback;
 
 @CustomLog
 public class SpotifyController {
 
     private static final Uri BASE_URL = Uri.parse("https://api.spotify.com/v1");
-
+    @Getter
+    private static String token;
+    private static Instant tokenExpirationTime;
     @Setter
     private static SpotifyErrorResponse.Listener errorResponseListener;
+
+    public static void init(AuthenticationResponse authResponse) {
+        token = authResponse.getAccessToken();
+        tokenExpirationTime = Instant.now().plusSeconds(authResponse.getExpiresIn());
+    }
+
+    public static boolean isInitialized() {
+        return token != null;
+    }
+
+    public static boolean isTokenExpired() {
+        return token != null && tokenExpirationTime.isBefore(Instant.now());
+    }
 
     public static void getMyTopTracks(Response.Listener<Page<SpotifyTrack>> listener) {
         String url = BASE_URL.buildUpon().appendPath("me").appendPath("top").appendPath("tracks")
@@ -134,7 +151,7 @@ public class SpotifyController {
     private static <ReqT, ResT> void addToRequestQueue(String url,
                                                        TypeToken<ResT> responseTypeToken,
                                                        Response.Listener<ResT> listener) {
-        Request<ReqT, ResT> request = new Request<>(getToken(), Request.Method.GET, url, null,
+        Request<ReqT, ResT> request = new Request<>(token, Request.Method.GET, url, null,
             responseTypeToken, listener, error -> {
             SpotifyErrorResponse response = null;
             if (error.networkResponse != null) {
@@ -149,10 +166,6 @@ public class SpotifyController {
             }
         });
 
-        AppController.getInstance().addToRequestQueue(request);
-    }
-
-    private static String getToken() {
-        return SpotifyCallback.getInstance().getToken();
+        MusiQueueApplication.getInstance().addToRequestQueue(request);
     }
 }

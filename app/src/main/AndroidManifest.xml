@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="pl.com.karwowsm.musiqueue">
+    package="pl.com.karwowsm.musiqueue"
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
+    <queries>
+        <package android:name="com.google.android.youtube" />
+    </queries>
+
     <application
-        android:name=".AppController"
+        android:name=".MusiQueueApplication"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_launcher"
@@ -15,34 +20,61 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".ui.activity.LoginActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.activity.RegisterActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:exported="true"
             android:screenOrientation="portrait">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.activity.RegisterActivity"
-            android:screenOrientation="portrait" />
+
         <activity
             android:name=".ui.activity.RoomActivity"
             android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.spotify.sdk.android.authentication.LoginActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
+            android:name=".ui.activity.RoomCreateActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.activity.RoomUpdateActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.activity.TracksActivity"
+            android:exported="false"
             android:screenOrientation="portrait" />
 
         <service
             android:name=".service.RoomService"
+            android:exported="false"
             android:foregroundServiceType="dataSync|mediaPlayback" />
-        <service android:name=".service.KillerService" />
-        <!-- Needed for LoginActivity to work -->
-        <activity
-            android:name="com.spotify.sdk.android.authentication.LoginActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity android:name=".ui.activity.RoomSelectActivity" />
-        <activity android:name=".ui.activity.RoomCreateActivity" />
-        <activity android:name=".ui.activity.RoomUpdateActivity" />
-        <activity android:name=".ui.activity.TracksActivity" />
     </application>
-
 </manifest>

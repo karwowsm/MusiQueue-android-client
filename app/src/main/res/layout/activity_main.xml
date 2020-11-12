@@ -14,7 +14,7 @@
 
         <include layout="@layout/app_bar_base" />
 
-        <include layout="@layout/content_room_select" />
+        <include layout="@layout/content_main" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"

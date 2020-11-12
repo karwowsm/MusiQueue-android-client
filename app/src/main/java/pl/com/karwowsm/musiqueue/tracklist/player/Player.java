@@ -21,14 +21,15 @@ import pl.com.karwowsm.musiqueue.api.dto.RoomTrack;
 @UtilityClass
 public final class Player {
 
+    @Getter
+    private static final SpotifyAudioController spotifyAudioController = new SpotifyAudioController();
+
     @Setter
     private static SimpleExoPlayer exoPlayer;
     @Setter
     private static YouTubePlayer youTubePlayer;
     @Setter
     private static SpotifyPlayer spotifyPlayer;
-    @Setter
-    private static SpotifyAudioController spotifyAudioController;
     @Getter
     private static boolean isPlaying;
     @Getter
@@ -36,41 +37,35 @@ public final class Player {
     @Getter
     private static Instant startedPlayingAt;
     @Setter
-    private static boolean youTubePlayerPositionSought;
+    private static boolean youTubePlayerPaused;
 
-    public static void play(RoomTrack roomTrack, Instant startedPlayingAt) {
-        Player.startedPlayingAt = startedPlayingAt;
-        int position = getPosition();
+    public static boolean prepare(RoomTrack roomTrack, Instant startedPlayingAt) {
         stop();
+        Player.startedPlayingAt = startedPlayingAt;
+        return getPosition() < roomTrack.getTrack().getDuration();
+    }
+
+    public static void play(RoomTrack roomTrack) {
+        int position = getPosition();
         log.d("Playing: " + roomTrack.getTrack().getSource() + " " + roomTrack.getId() + " " + position + " / " + roomTrack.getTrack().getDuration());
         if (position < roomTrack.getTrack().getDuration()) {
             if (roomTrack.isUploadedContent()) {
                 if (isExoPlayerSet()) {
                     playMediaUri(buildUploadedTrackUri(roomTrack));
-                } else {
-                    log.d("ExoPlayer not set");
                 }
             } else if (roomTrack.isYouTubeContent()) {
                 if (isYouTubePlayerSet()) {
                     youTubePlayer.loadVideo(roomTrack.getTrack().getTrackId(), position);
-                    log.d("Played by YouTubePlayer");
-                } else {
-                    log.d("YouTubePlayer not set");
                 }
             } else if (roomTrack.isSpotifyContent()) {
                 if (isSpotifyPlayerSet()) {
                     spotifyPlayer.playUri(null, buildSpotifyTrackUri(roomTrack), 0, position);
-                    log.d("Played by SpotifyPlayer");
-                } else {
-                    log.d("SpotifyPlayer not set");
                 }
             } else if (roomTrack.isSoundCloudContent()) {
                 if (isExoPlayerSet()) {
                     SoundCloudController.generateSoundCloudTrackUrl(roomTrack.getTrack().getTrackId(),
                         soundCloudTrackUrl -> playMediaUri(soundCloudTrackUrl.getUrl())
                     );
-                } else {
-                    log.d("ExoPlayer not set");
                 }
             }
             isPlaying = true;
@@ -90,12 +85,11 @@ public final class Player {
         isPlaying = false;
     }
 
-    public static void seekPosition() {
-        int position = getPosition();
-        if (position < youTubePlayer.getDurationMillis() && !youTubePlayerPositionSought) {
+    public static void seekYouTubePlayerPositionIfNeeded() {
+        if (youTubePlayerPaused) {
             youTubePlayer.seekToMillis(getPosition());
         }
-        youTubePlayerPositionSought = true;
+        youTubePlayerPaused = false;
     }
 
     public static void enableFullscreen() {
@@ -132,9 +126,7 @@ public final class Player {
         if (isExoPlayerSet()) {
             exoPlayer.setVolume(0);
         }
-        if (isSpotifyPlayerSet()) {
-            spotifyAudioController.mute();
-        }
+        spotifyAudioController.mute();
         isMuted = true;
     }
 
@@ -142,9 +134,7 @@ public final class Player {
         if (isExoPlayerSet()) {
             exoPlayer.setVolume(1);
         }
-        if (isSpotifyPlayerSet()) {
-            spotifyAudioController.unMute();
-        }
+        spotifyAudioController.unMute();
         isMuted = false;
     }
 
@@ -172,6 +162,13 @@ public final class Player {
         if (isExoPlayerSet()) {
             exoPlayer.release();
             exoPlayer = null;
+        }
+    }
+
+    public static void releaseYouTubePlayer() {
+        if (isYouTubePlayerSet()) {
+            youTubePlayer.release();
+            youTubePlayer = null;
         }
     }
 

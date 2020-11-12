@@ -28,6 +28,7 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerAndroidXFragment;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
+import com.spotify.sdk.android.player.Spotify;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -45,7 +46,6 @@ import pl.com.karwowsm.musiqueue.api.dto.RoomTrack;
 import pl.com.karwowsm.musiqueue.api.dto.Track;
 import pl.com.karwowsm.musiqueue.api.dto.UserAccount;
 import pl.com.karwowsm.musiqueue.api.ws.MessagingService;
-import pl.com.karwowsm.musiqueue.service.KillerService;
 import pl.com.karwowsm.musiqueue.service.RoomService;
 import pl.com.karwowsm.musiqueue.tracklist.TracklistManager;
 import pl.com.karwowsm.musiqueue.tracklist.player.Player;
@@ -55,14 +55,16 @@ import pl.com.karwowsm.musiqueue.ui.fragment.YouTubeDialogFragment;
 import pl.com.karwowsm.musiqueue.ui.menu.FloatingActionButtonMenu;
 import pl.com.karwowsm.musiqueue.ui.view.CurrentTrackView;
 import pl.com.karwowsm.musiqueue.util.SpotifyCallback;
+import pl.com.karwowsm.musiqueue.util.SpotifyUtils;
 import pl.com.karwowsm.musiqueue.util.YouTubePlayerCallback;
 
 @CustomLog
-public class RoomActivity extends NavigationViewActivity implements YouTubePlayer.OnFullscreenListener {
+public class RoomActivity extends NavigationViewActivity {
 
-    private static final int STORAGE_REQUEST_CODE = 12345;
-    private static final int AUDIO_FILE_CONTENT_REQUEST_CODE = 47;
-    private static final int YOUTUBE_RECOVERY_REQUEST_CODE = 1;
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 0;
+    private static final int AUDIO_FILE_CONTENT_REQUEST_CODE = 1;
+    private static final int YOUTUBE_RECOVERY_REQUEST_CODE = 2;
+    private static final int SPOTIFY_LOGIN_REQUEST_CODE = 3;
 
     private static final int CONTEXT_MENU_DELETE_ITEM_ID = 0;
     private static final int CONTEXT_MENU_QUEUE_AGAIN_ITEM_ID = 1;
@@ -87,17 +89,15 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
         registerForContextMenu(findViewById(R.id.current_track_img));
 
         tracklistManager = new TracklistManager(this, me, room.getId(), currentTrackView);
-        tracklistManager.initialize(listView);
-        tracklistManager.setOnYouTubeLoggingInRequisition(this::initYouTubePlayer);
+        tracklistManager.setYouTubePlayerInitializer(this::initYouTubePlayer);
         tracklistManager.setOnSpotifyLoggingInRequisition(
-            () -> Snackbar.make(listView, getString(R.string.not_logged_in_spotify), Snackbar.LENGTH_LONG)
-                .setAction(getString(R.string.log_in), view -> SpotifyCallback.getInstance().login(this))
+            () -> Snackbar.make(findViewById(R.id.activity_room_layout), R.string.not_logged_in_spotify, Snackbar.LENGTH_INDEFINITE)
+                .setAction(getString(R.string.log_in), view -> SpotifyUtils.login(this, SPOTIFY_LOGIN_REQUEST_CODE))
                 .show()
         );
-        SoundCloudController.setErrorListener(error -> showToast(getString(R.string.soundcloud_error_response)));
-        SoundCloudController.getClientId();
+        tracklistManager.setSpotifyPlayerInitializer(this::initSpotifyPlayer);
 
-        MessagingService.connect(() -> {
+        MessagingService.connect(() -> tracklistManager.initialize(listView), () -> {
             showToast(R.string.connection_error);
             leaveRoom();
         });
@@ -130,25 +130,15 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
             }
         });
 
-        SpotifyCallback.getInstance().setListener(new SpotifyCallback.Listener() {
-            @Override
-            public void onLoggedIn() {
-                tracklistManager.playBySourceIfNeeded(Track.Source.SPOTIFY);
-                SpotifyController.setErrorResponseListener(error -> showToast(error != null
-                    ? error.toString()
-                    : getString(R.string.spotify_error_response)));
-            }
-
-            @Override
-            public void onTrackDelivered() {
-                tracklistManager.requestPlayingNext();
-            }
-
-            @Override
-            public void onPlaybackError() {
-                showToast(R.string.spotify_playback_error);
-            }
-        });
+        YouTubeController.setErrorResponseListener(error -> showToast(error != null
+            ? error.toString()
+            : getString(R.string.youtube_error_response)));
+        YouTubeController.init();
+        SpotifyController.setErrorResponseListener(error -> showToast(error != null
+            ? error.toString()
+            : getString(R.string.spotify_error_response)));
+        SoundCloudController.setErrorListener(error -> showToast(getString(R.string.soundcloud_error_response)));
+        SoundCloudController.getClientId();
 
         initFloatingActionButtonMenu();
 
@@ -167,10 +157,9 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
 
         initNavigationView();
 
-        Intent intent = new Intent(RoomActivity.this, RoomService.class);
+        Intent intent = new Intent(this, RoomService.class);
         intent.putExtra("room", room.getName());
         startService(intent);
-        startService(new Intent(RoomActivity.this, KillerService.class));
     }
 
     @Override
@@ -226,7 +215,7 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
         int id = item.getItemId();
 
         if (id == R.id.log_in_to_spotify_menu_item) {
-            SpotifyCallback.getInstance().login(this);
+            SpotifyUtils.login(this, SPOTIFY_LOGIN_REQUEST_CODE);
         } else if (id == R.id.settings_menu_item) {
             showToast(R.string.not_developed_yet);
             return true;
@@ -237,7 +226,7 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == STORAGE_REQUEST_CODE) {
+        if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
             if (Arrays.stream(grantResults).allMatch(it -> it == PackageManager.PERMISSION_GRANTED)) {
                 requestAudioFileContent();
             } else {
@@ -249,61 +238,19 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
     }
 
     @Override
-    public void onFullscreen(boolean isFullscreen) {
-        tracklistManager.getCurrentTrackView().setFullscreen(isFullscreen);
-
-        List<View> otherViews = Arrays.asList(findViewById(R.id.toolbar),
-            findViewById(R.id.room_tracks_lv),
-            findViewById(R.id.fab),
-            findViewById(R.id.file_fab),
-            findViewById(R.id.youtube_fab),
-            findViewById(R.id.spotify_fab),
-            findViewById(R.id.soundcloud_fab));
-
-        for (View it : otherViews) {
-            it.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else if (tracklistManager.getCurrentTrackView().isFullscreen()) {
             Player.exitFullscreen();
         } else {
-            leaveRoom();
+            RoomMembersController.leaveRoom(room.getId(), super::onBackPressed);
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        tracklistManager.finish();
-        messagingService.unsubscribe();
-        Intent serviceIntent = new Intent(RoomActivity.this, RoomService.class);
-        stopService(serviceIntent);
-        super.onDestroy();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        if (requestCode == SpotifyCallback.REQUEST_CODE) {
-            AuthenticationResponse authResponse = AuthenticationClient.getResponse(resultCode, intent);
-            if (authResponse.getType() == AuthenticationResponse.Type.TOKEN) {
-                SpotifyCallback.getInstance().initPlayer(this, authResponse);
-                if (intendedToAddTrack) {
-                    intendedToAddTrack = false;
-                    showSpotifyDialog();
-                }
-            } else {
-                log.d("SpotifyAuthResponse: " + authResponse.getError());
-                String msg = getString(R.string.spotify_error_authenticating);
-                Snackbar.make(getCurrentFocus(), msg, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(getString(R.string.try_again), view -> SpotifyCallback.getInstance().login(this))
-                    .show();
-            }
-        }
         if (requestCode == AUDIO_FILE_CONTENT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             try {
                 tracklistManager.addFileContent(intent.getData());
@@ -315,6 +262,39 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
         if (requestCode == YOUTUBE_RECOVERY_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             initYouTubePlayer();
         }
+        if (requestCode == SPOTIFY_LOGIN_REQUEST_CODE) {
+            AuthenticationResponse authResponse = AuthenticationClient.getResponse(resultCode, intent);
+            if (authResponse.getType() == AuthenticationResponse.Type.TOKEN) {
+                SpotifyController.init(authResponse);
+                if (tracklistManager.getCurrentTrack() != null && tracklistManager.getCurrentTrack().isSpotifyContent()) {
+                    initSpotifyPlayer();
+                }
+                if (intendedToAddTrack) {
+                    intendedToAddTrack = false;
+                    showSpotifyDialog();
+                }
+            } else {
+                log.d("SpotifyAuthResponse: " + authResponse.getError());
+                String msg = getString(R.string.spotify_error_authenticating);
+                Snackbar.make(findViewById(R.id.activity_room_layout), msg, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(getString(R.string.try_again), view -> SpotifyUtils.login(this, SPOTIFY_LOGIN_REQUEST_CODE))
+                    .show();
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        tracklistManager.finish();
+        messagingService.unsubscribe();
+        MessagingService.disconnect();
+        YouTubeController.setErrorResponseListener(null);
+        Spotify.destroyPlayer(this);
+        SpotifyController.setErrorResponseListener(null);
+        SoundCloudController.setErrorListener(null);
+        Intent serviceIntent = new Intent(this, RoomService.class);
+        stopService(serviceIntent);
+        super.onDestroy();
     }
 
     private void initFloatingActionButtonMenu() {
@@ -339,7 +319,7 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
 
         fileBtn.setOnClickListener(view -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!requestPermissionsIfNeeded(STORAGE_REQUEST_CODE, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                if (!requestPermissionsIfNeeded(STORAGE_PERMISSION_REQUEST_CODE, Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     requestAudioFileContent();
                 }
             } else {
@@ -348,25 +328,17 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
             floatingActionButtonMenu.close();
         });
 
-        youTubeBtn.setOnClickListener(view -> {
-            if (!Player.isYouTubePlayerSet()) {
-                intendedToAddTrack = true;
-                initYouTubePlayer();
-            } else {
-                showYouTubeDialog();
-            }
-        });
+        youTubeBtn.setOnClickListener(view -> showYouTubeDialog());
 
         spotifyBtn.setOnClickListener(view -> {
-            SpotifyCallback spotifyCallback = SpotifyCallback.getInstance();
-            if (spotifyCallback.getToken() != null && !spotifyCallback.isTokenExpired()) {
+            if (SpotifyController.isInitialized() && !SpotifyController.isTokenExpired()) {
                 showSpotifyDialog();
             } else {
-                if (spotifyCallback.isTokenExpired()) {
+                if (SpotifyController.isTokenExpired()) {
                     showToast(R.string.spotify_access_token_expired);
                 }
                 intendedToAddTrack = true;
-                spotifyCallback.login(this);
+                SpotifyUtils.login(this, SPOTIFY_LOGIN_REQUEST_CODE);
             }
         });
 
@@ -378,48 +350,66 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
     }
 
     private void initYouTubePlayer() {
-        YouTubePlayerAndroidXFragment youTubePlayerFragment = (YouTubePlayerAndroidXFragment) getSupportFragmentManager()
+        YouTubePlayerAndroidXFragment playerFragment = (YouTubePlayerAndroidXFragment) getSupportFragmentManager()
             .findFragmentById(R.id.youtube_fragment);
-        youTubePlayerFragment.initialize(BuildConfig.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener() {
+        playerFragment.initialize(BuildConfig.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener() {
             @Override
             public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
-                player.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
-                player.setOnFullscreenListener(RoomActivity.this);
-
-                YouTubePlayerCallback youTubePlayerCallback = new YouTubePlayerCallback(new YouTubePlayerCallback.Listener() {
+                YouTubePlayerCallback playerCallback = new YouTubePlayerCallback(new YouTubePlayerCallback.Listener() {
 
                     @Override
-                    public void onPlaying() {
-                        Player.seekPosition();
-                        player.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
-                        tracklistManager.getCurrentTrackView().showProgressBar();
+                    public void onLoaded() {
+                        Player.setYouTubePlayerPaused(false);
+                        tracklistManager.getCurrentTrackView().showVideoBox();
                     }
 
                     @Override
-                    public void onStopped() {
-                        Player.setYouTubePlayerPositionSought(false);
+                    public void onPlaying() {
+                        Player.seekYouTubePlayerPositionIfNeeded();
+                        player.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
+                        tracklistManager.getCurrentTrackView().showProgressBar();
+                        tracklistManager.getCurrentTrackView().restart();
+                    }
+
+                    @Override
+                    public void onPaused() {
+                        Player.setYouTubePlayerPaused(true);
                         player.setPlayerStyle(YouTubePlayer.PlayerStyle.MINIMAL);
                         tracklistManager.getCurrentTrackView().hideProgressBar();
                     }
 
                     @Override
                     public void onVideoEnded() {
+                        tracklistManager.getCurrentTrackView().hideVideoBox();
                         tracklistManager.requestPlayingNext();
                     }
                 });
-                player.setPlaybackEventListener(youTubePlayerCallback);
-                player.setPlayerStateChangeListener(youTubePlayerCallback);
+                player.setPlaybackEventListener(playerCallback);
+                player.setPlayerStateChangeListener(playerCallback);
+                player.setOnFullscreenListener(isFullscreen -> {
+                    tracklistManager.getCurrentTrackView().setFullscreen(isFullscreen);
+                    View decorView = getWindow().getDecorView();
+                    if (isFullscreen) {
+                        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+                    } else {
+                        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+                    }
 
+                    List<View> otherViews = Arrays.asList(findViewById(R.id.toolbar),
+                        findViewById(R.id.room_tracks_lv),
+                        findViewById(R.id.fab),
+                        findViewById(R.id.file_fab),
+                        findViewById(R.id.youtube_fab),
+                        findViewById(R.id.spotify_fab),
+                        findViewById(R.id.soundcloud_fab));
+
+                    for (View it : otherViews) {
+                        it.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
+                    }
+                });
+                player.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
                 Player.setYouTubePlayer(player);
-                YouTubeController.init();
-                YouTubeController.setErrorResponseListener(error -> showToast(error != null
-                    ? error.toString()
-                    : getString(R.string.youtube_error_response)));
                 tracklistManager.playBySourceIfNeeded(Track.Source.YOUTUBE);
-                if (intendedToAddTrack) {
-                    intendedToAddTrack = false;
-                    showYouTubeDialog();
-                }
             }
 
             @Override
@@ -431,6 +421,27 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
                 }
             }
         });
+    }
+
+    private void initSpotifyPlayer() {
+        if (SpotifyController.isInitialized() && !SpotifyController.isTokenExpired()) {
+            SpotifyUtils.initPlayer(this, new SpotifyCallback(new SpotifyCallback.Listener() {
+                @Override
+                public void onLoggedIn() {
+                    tracklistManager.playBySourceIfNeeded(Track.Source.SPOTIFY);
+                }
+
+                @Override
+                public void onPlaybackError() {
+                    showToast(R.string.spotify_playback_error);
+                }
+            }), () -> runOnUiThread(tracklistManager::requestPlayingNext));
+        } else {
+            if (SpotifyController.isTokenExpired()) {
+                showToast(R.string.spotify_access_token_expired);
+            }
+            SpotifyUtils.login(this, SPOTIFY_LOGIN_REQUEST_CODE);
+        }
     }
 
     private void requestAudioFileContent() {
@@ -477,7 +488,7 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
         showDialog(soundcloudDialogFragment, bundle);
     }
 
-    private <T extends DialogFragment> void showDialog(T dialogFragment, Bundle bundle) {
+    private void showDialog(DialogFragment dialogFragment, Bundle bundle) {
         dialogFragment.setArguments(bundle);
         FragmentManager fragmentManager = getSupportFragmentManager();
         dialogFragment.setStyle(DialogFragment.STYLE_NO_TITLE, 0);
@@ -485,11 +496,6 @@ public class RoomActivity extends NavigationViewActivity implements YouTubePlaye
     }
 
     private void leaveRoom() {
-        RoomMembersController.leaveRoom(room.getId(), room -> {
-            Intent intent = new Intent();
-            intent.putExtra("me", me);
-            setResult(0, intent);
-            super.onBackPressed();
-        });
+        RoomMembersController.leaveRoom(room.getId(), this::finish);
     }
 }

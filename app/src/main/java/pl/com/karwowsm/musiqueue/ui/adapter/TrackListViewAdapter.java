@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
-import pl.com.karwowsm.musiqueue.AppController;
+import pl.com.karwowsm.musiqueue.MusiQueueApplication;
 import pl.com.karwowsm.musiqueue.R;
 import pl.com.karwowsm.musiqueue.api.dto.Track;
 import pl.com.karwowsm.musiqueue.ui.util.TrackUtils;
@@ -42,7 +42,7 @@ public class TrackListViewAdapter extends ArrayAdapter<Track> {
         TextView queuedNumberTextView = convertView.findViewById(R.id.queued_number_tv);
 
         trackImageView.setDefaultImageResId(TrackUtils.getImageResId(track.getSource()));
-        trackImageView.setImageUrl(track.getImageUrl(), AppController.getInstance().getImageLoader());
+        trackImageView.setImageUrl(track.getImageUrl(), MusiQueueApplication.getInstance().getImageLoader());
         titleTextView.setText(track.getTitle());
         artistTextView.setText(track.getArtist());
         queuedNumberTextView.setText(String.valueOf(track.getQueuedNumber()));

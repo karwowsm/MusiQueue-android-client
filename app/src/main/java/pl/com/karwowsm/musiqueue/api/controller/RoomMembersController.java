@@ -18,8 +18,8 @@ public class RoomMembersController extends BaseController {
             Room.class, listener, errorResponseListener);
     }
 
-    public static void leaveRoom(final UUID id, Response.Listener<Room> listener) {
+    public static void leaveRoom(final UUID id, Runnable listener) {
         addToRequestQueue(Request.Method.DELETE, String.format(BASE_PATH, id) + "/me",
-            Room.class, listener);
+            Room.class, room -> listener.run(), error -> listener.run());
     }
 }
