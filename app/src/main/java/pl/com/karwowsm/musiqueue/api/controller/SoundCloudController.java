@@ -28,7 +28,7 @@ public class SoundCloudController {
 
     public static void getClientId() {
         StringRequest request = new StringRequest("https://soundcloud.com", response -> {
-            Matcher matcher = Pattern.compile("[\\s\\S]*client_id=([0-9a-zA-z]{32})[\\s\\S]*")
+            Matcher matcher = Pattern.compile("[\\s\\S]*\"clientId\": *\"([0-9a-zA-z]{32})[\\s\\S]*")
                 .matcher(response);
             if (matcher.matches()) {
                 CLIENT_ID = matcher.group(1);
