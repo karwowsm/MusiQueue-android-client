@@ -46,7 +46,7 @@ public final class Player {
     }
 
     public static void play(RoomTrack roomTrack) {
-        int position = getPosition();
+        long position = getPosition();
         log.d("Playing: " + roomTrack.getTrack().getSource() + " " + roomTrack.getId() + " " + position + " / " + roomTrack.getTrack().getDuration());
         if (position < roomTrack.getTrack().getDuration()) {
             if (roomTrack.isUploadedContent()) {
@@ -55,11 +55,11 @@ public final class Player {
                 }
             } else if (roomTrack.isYouTubeContent()) {
                 if (isYouTubePlayerSet()) {
-                    youTubePlayer.loadVideo(roomTrack.getTrack().getTrackId(), position);
+                    youTubePlayer.loadVideo(roomTrack.getTrack().getTrackId(), (int) position);
                 }
             } else if (roomTrack.isSpotifyContent()) {
                 if (isSpotifyPlayerSet()) {
-                    spotifyPlayer.playUri(null, buildSpotifyTrackUri(roomTrack), 0, position);
+                    spotifyPlayer.playUri(null, buildSpotifyTrackUri(roomTrack), 0, (int) position);
                 }
             } else if (roomTrack.isSoundCloudContent()) {
                 if (isExoPlayerSet()) {
@@ -87,7 +87,7 @@ public final class Player {
 
     public static void seekYouTubePlayerPositionIfNeeded() {
         if (youTubePlayerPaused) {
-            youTubePlayer.seekToMillis(getPosition());
+            youTubePlayer.seekToMillis((int) getPosition());
         }
         youTubePlayerPaused = false;
     }
@@ -109,15 +109,15 @@ public final class Player {
         youTubePlayer.setFullscreen(false);
     }
 
-    public static int getPlaybackPosition() {
+    public static long getPlaybackPosition() {
         if (isExoPlayerPlaying()) {
-            return (int) exoPlayer.getCurrentPosition();
+            return exoPlayer.getCurrentPosition();
         }
         if (isYouTubePlayerPlaying()) {
             return youTubePlayer.getCurrentTimeMillis();
         }
         if (isSpotifyPlayerPlaying()) {
-            return (int) spotifyPlayer.getPlaybackState().positionMs;
+            return spotifyPlayer.getPlaybackState().positionMs;
         }
         return getPosition();
     }
@@ -185,8 +185,8 @@ public final class Player {
             && spotifyPlayer.getPlaybackState().isPlaying;
     }
 
-    private static int getPosition() {
-        return (int) startedPlayingAt.until(Instant.now(), ChronoUnit.MILLIS);
+    private static long getPosition() {
+        return startedPlayingAt.until(Instant.now(), ChronoUnit.MILLIS);
     }
 
     private static String buildUploadedTrackUri(RoomTrack roomTrack) {

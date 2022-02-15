@@ -119,7 +119,7 @@ public class CurrentTrackView {
     private void refresh() {
         if (Player.isPlaying()) {
             imageView.setAlpha(1f);
-            progressBar.setProgress(Player.getPlaybackPosition());
+            progressBar.setProgress((int) Player.getPlaybackPosition());
             handler.postDelayed(refresher, currentTrack.getDuration() / 230);
         } else {
             imageView.setAlpha(0.5f);
